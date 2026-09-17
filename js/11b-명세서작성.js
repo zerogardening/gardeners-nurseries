@@ -597,13 +597,15 @@ window.ZG = window.ZG || {};
 
   /* ── 폰 — 작성까지만. 출력은 PC 에서 한다 (시안 ③) ── */
   function 폰그리기(부모) {
-    var 고르개 = 만들기('div', { class: 'toggle' });
+    /* 🔴 종류 고르개는 제 줄을 안 갖는다 (우람님 9/17) — 위의 탭줄 둘에 이어 셋째 줄이 되니
+       똑같이 생긴 알약 세 줄이 화면 위 1/4 을 먹고 뭐가 윗길인지 안 보였다.
+       고르는 일은 그대로 남는다. 공급받는자 이름표 오른쪽에 붙여 한 줄을 돌려받는다 */
+    var 고르개 = 만들기('div', { class: 'toggle segmini' });
     ['견적서', '거래명세서'].forEach(function (t) {
-      var b = 만들기('button', { type: 'button', class: 상태.종류 === t ? 'on' : '', text: t, style: 'flex:1;padding:0' });
+      var b = 만들기('button', { type: 'button', class: 상태.종류 === t ? 'on' : '', text: t });
       b.addEventListener('click', function () { 상태.종류 = t; ZG.업체앱.다시그리기(); });
       고르개.appendChild(b);
     });
-    부모.appendChild(고르개);
 
     var 이름칸 = 만들기('input', { class: 'inp', type: 'text', value: 상태.받는곳.이름 || '' });
     var 감쌈 = 만들기('div', { class: 'acwrap' }, [이름칸]);
@@ -615,7 +617,9 @@ window.ZG = window.ZG || {};
       ZG.업체앱.다시그리기();
     });
     부모.appendChild(만들기('div', { class: 'field' }, [
-      만들기('label', {}, [document.createTextNode('공급받는자 (고객) '), 만들기('span', { class: 'req', text: '*' })]),
+      만들기('label', {}, [
+        document.createTextNode('공급받는자 (고객) '), 만들기('span', { class: 'req', text: '*' }), 고르개
+      ]),
       감쌈
     ]));
 
@@ -639,9 +643,6 @@ window.ZG = window.ZG || {};
     var 저장단추 = 만들기('button', { class: 'ph-save', type: 'button', text: '저장' });
     저장단추.addEventListener('click', 저장);
     부모.appendChild(저장단추);
-    부모.appendChild(만들기('div', {
-      class: 'noteline', html: '🖨 <b>출력은 PC화면</b>에서 — 밭에서 잡아 두고 사무실에서 뽑습니다.'
-    }));
     폰표채우기();
   }
 
@@ -654,13 +655,17 @@ window.ZG = window.ZG || {};
     상태.줄들.forEach(function (줄, i) {
       var 지움 = 만들기('button', { class: 'xbtn', type: 'button', text: '×', 'aria-label': '이 줄 지우기' });
       지움.addEventListener('click', function () { 상태.줄들.splice(i, 1); 표다시(); });
+      /* 🔴 「수량 × 단가」는 가운데 칸을 따로 쓰지 않는다 (우람님 9/17) — 폰에서 금액과 맞붙어
+         「1 × 3,0003,000」 으로 읽혔다. 금액 아래에 작게 깔면 둘이 한 덩어리로 보인다 */
       표칸.appendChild(만들기('div', { class: 'lineitem' }, [
         만들기('div', { class: 't' }, [
           만들기('b', { text: 줄.유통명 || '' }),
           만들기('span', { text: [줄.품목코드, 줄.규격].filter(Boolean).join(' · ') || '직접 입력' })
         ]),
-        만들기('div', { class: 'q', text: u.콤마(줄.수량) + ' × ' + u.콤마(줄.단가) }),
-        만들기('div', { class: 'a', text: u.콤마(계.줄최종(줄)) }),
+        만들기('div', { class: 'a' }, [
+          만들기('b', { text: u.콤마(계.줄최종(줄)) }),
+          만들기('span', { class: 'q', text: u.콤마(줄.수량) + ' × ' + u.콤마(줄.단가) })
+        ]),
         지움
       ]));
     });

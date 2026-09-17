@@ -245,6 +245,11 @@ button{font-family:inherit; color:inherit}
 }
 .inp:focus{outline:none; border-color:var(--color-accent); box-shadow:0 0 0 3px var(--color-accent-bg)}
 .inp.num{text-align:right; font-variant-numeric:tabular-nums}
+/* 🔴 날짜칸은 제 최소폭을 고집한다 (우람님 9/17 폰 사진 — 「유효기간」이 화면 밖으로 잘렸다).
+   iOS Safari 의 날짜칸이 Chrome 것보다 넓어 .pair 의 반쪽을 밀고 나갔다. Chrome 에서는 멀쩡해
+   한 기기만 봐서는 안 잡힌다. width:100% 로는 안 줄어든다 — min-width 를 직접 풀어 줘야 한다.
+   오른쪽 맞춤도 뗀다. 좁아진 칸에서 값이 달력 아이콘에 들러붙었다 */
+.inp[type="date"]{min-width:0; max-width:100%; text-align:left}
 .inp.sci{font-size:var(--font-md); font-style:italic; letter-spacing:-.1px}
 .inp.code{
   font-family:var(--font-mono); font-size:var(--font-md); font-weight:var(--weight-bold);
@@ -361,7 +366,14 @@ td.zero{color:var(--color-danger); font-weight:var(--weight-bold)}
 .row .spacer{flex:1}
 
 /* ══ 뼈대 — 폰 ══ */
-.ph-shell{display:flex; flex-direction:column; min-height:100vh; background:var(--color-ios-bg); overflow-x:hidden}
+/* 🔴 overflow-x 는 hidden 이 아니라 clip 이다 (우람님 9/17).
+   hidden 은 세로쪽도 덩달아 스크롤 상자로 만든다 — 이 뼈대는 min-height:100vh 라 제가 스크롤할
+   일이 없는데, 안쪽 position:sticky 는 이 죽은 상자를 기준으로 삼아 영영 안 붙는다.
+   clip 은 가로를 자르는 일만 하고 상자를 안 만든다. 앞줄은 clip 을 모르는 구형용 */
+.ph-shell{
+  display:flex; flex-direction:column; min-height:100vh; background:var(--color-ios-bg);
+  overflow-x:hidden; overflow-x:clip;
+}
 /* 폰에서는 항목 이름이 길어 한 줄로 묶으면 화면 밖으로 밀린다 */
 .ph-shell .field > label, .editpanel .field > label{white-space:normal; flex-wrap:wrap; line-height:1.4}
 .ph-top{
