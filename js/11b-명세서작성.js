@@ -623,14 +623,16 @@ window.ZG = window.ZG || {};
       감쌈
     ]));
 
-    function 날짜밭(라벨, 값, 넣기) {
-      var 입력 = 만들기('input', { class: 'inp num', type: 'date', value: 값 || '' });
-      입력.addEventListener('change', function () { 넣기(입력.value); });
-      return 만들기('div', { class: 'field' }, [만들기('label', { text: 라벨 }), 입력]);
-    }
-    부모.appendChild(만들기('div', { class: 'pair' }, [
-      날짜밭('작성일자', 상태.작성일, function (v) { 상태.작성일 = v; }),
-      날짜밭(상태.종류 === '견적서' ? '유효기간' : '납기일', 상태.납기일, function (v) { 상태.납기일 = v; })
+    /* 🔴 폰에는 작성일자 하나만 둔다 — 납기일(견적서면 유효기간)은 PC 에서 넣는다 (우람님 9/17).
+       둘을 .pair 로 나란히 놓으면 iOS 에서 오른쪽 칸이 화면 밖으로 잘렸다.
+       iOS Safari 의 날짜칸은 제 최소폭을 고집해 min-width:0 으로도 안 줄어든다
+       (공통.css .inp[type="date"] — Chrome 에서는 그것으로 되지만 iOS 는 안 된다).
+       🔴 상태.납기일 은 그대로 살아 있다. 폰에서 안 보일 뿐, PC 에서 넣은 값은
+          저장·불러오기·인쇄에 그대로 실린다. 폰에서 새로 쓰면 빈 채로 저장된다 */
+    var 날짜칸 = 만들기('input', { class: 'inp num', type: 'date', value: 상태.작성일 || '' });
+    날짜칸.addEventListener('change', function () { 상태.작성일 = 날짜칸.value; });
+    부모.appendChild(만들기('div', { class: 'field' }, [
+      만들기('label', { text: '작성일자' }), 날짜칸
     ]));
 
     표칸 = 만들기('div', { class: 'doccard' });
