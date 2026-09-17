@@ -375,11 +375,15 @@
 .tsec .r{font-size:var(--font-2xs); font-weight:var(--weight-bold); color:var(--color-text-muted)}
 
 .tlist{display:flex; flex-direction:column; gap:var(--space-sm)}
+/* 🔴 position:relative 가 없으면 뒤에 숨어 있어야 할 쓸기 단추가 카드 위로 올라와 늘 보인다.
+   .mcard · .ckcard 도 같은 까닭으로 relative 다. 바탕도 반드시 불투명해야 한다 */
 .tcard{
+  position:relative;
   display:flex; gap:var(--space-md); align-items:flex-start;
   padding:var(--space-md) var(--space-lg); background:var(--color-surface);
   border:var(--border-width) solid var(--color-border-faint); border-radius:var(--radius-lg);
   box-shadow:var(--shadow-card); cursor:pointer;
+  touch-action:pan-y; transition:transform .18s ease;
 }
 .tcard .ck{width:22px; height:22px; flex:0 0 22px; margin-top:2px; accent-color:var(--color-accent); cursor:pointer}
 .tcard .body{flex:1; min-width:0}
@@ -439,3 +443,48 @@
   .업무칸 > .tlist, .업무칸 > .empty{grid-column:2; grid-row:2 / span 2; align-self:start}
   .pc-main .ph-fab{display:none}   /* PC 는 목록 머리의 단추로 넣는다 */
 }
+
+/* ══ 업무 갈래 (업무 종류) ══ (2026-09-17 우람님)
+   색은 갈래마다 다르다 — 인라인 style 로 --갈래 를 넘겨받아 쓴다 */
+.tcard .t .갈래점{
+  display:inline-block; width:9px; height:9px; border-radius:50%;
+  margin-right:7px; vertical-align:middle; flex-shrink:0;
+}
+.갈래칩{
+  display:inline-flex; align-items:center; font-weight:var(--weight-bold);
+  border-radius:var(--radius-pill); padding:2px 9px;
+  background:var(--갈래); color:#fff; border:var(--border-width) solid var(--갈래);
+}
+.tcard .m .who.전체{
+  background:var(--color-bg); color:var(--color-text-sub);
+  border-color:var(--color-border); padding:2px 9px;
+}
+
+/* 업무 창 — 종류 고르개 · 큰 입력칸 */
+.갈래줄{display:flex; gap:var(--space-xs); flex-wrap:wrap}
+.갈래고르개{
+  font-family:inherit; cursor:pointer; font-size:var(--font-sm); font-weight:var(--weight-semibold);
+  padding:var(--pad-btn-sm); border-radius:var(--radius-pill); white-space:nowrap;
+  background:var(--color-surface); color:var(--color-text-sub);
+  border:var(--border-width) solid var(--color-border); box-shadow:var(--shadow-btn);
+}
+.갈래고르개.on{background:var(--갈래); border-color:var(--갈래); color:#fff}
+.갈래새{
+  font-family:inherit; cursor:pointer; font-size:var(--font-sm); font-weight:var(--weight-semibold);
+  padding:var(--pad-btn-sm); border-radius:var(--radius-pill); white-space:nowrap;
+  background:none; color:var(--color-accent-dark);
+  border:var(--border-width) dashed var(--color-accent-border);
+}
+.할일칸{line-height:1.6; min-height:170px; resize:vertical}
+
+/* 새 종류 창의 색 고르개 */
+.색줄{display:flex; gap:var(--space-sm); flex-wrap:wrap}
+.색알{
+  width:34px; height:34px; border-radius:50%; cursor:pointer; padding:0;
+  border:var(--border-width) solid rgba(0,0,0,.12); box-shadow:var(--shadow-btn);
+}
+.색알.on{box-shadow:0 0 0 3px var(--color-accent-bg), 0 0 0 4.5px var(--color-accent)}
+
+/* 창 위에 창 — 새 종류 창이 업무 창을 덮는다 */
+.askscrim2{z-index:210}
+.askbox2{z-index:211}

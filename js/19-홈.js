@@ -68,6 +68,31 @@ window.ZG = window.ZG || {};
     return 전부().filter(function (r) { return r.종류 === '업무'; });
   }
 
+  /* ══════════ 갈래 (업무 종류) ══════════
+     🔴 표를 새로 파지 않는다 — 같은 표에 종류:'갈래' 로 한 줄씩 산다.
+        기기마다 달라도 되는 값이 아니라 다 같이 보는 것이라 설정에 둘 수 없다.
+     🔴 이름 칸은 `종류` 가 이미 채팅/업무/갈래를 가르는 데 쓰여서 `갈래` 다. */
+  var 색판 = ['#C98F35', '#7FA164', '#9B7BAE', '#6E87AB', '#C4776A', '#9A9A5E', '#8E8E93'];
+
+  function 갈래들() {
+    return 전부().filter(function (r) { return r.종류 === '갈래'; })
+      .sort(function (a, b) { return (a.만든때 || 0) - (b.만든때 || 0); });
+  }
+  function 갈래하나(이름) {
+    var 것들 = 갈래들();
+    for (var i = 0; i < 것들.length; i++) if (것들[i].이름 === 이름) return 것들[i];
+    return null;
+  }
+  function 갈래색(이름) {
+    var g = 갈래하나(이름);
+    return g ? g.색 : '';
+  }
+  function 갈래넣기(이름, 색) {
+    var 줄 = { id: 'g-' + Date.now().toString(36) + '-' + 난수(3), 종류: '갈래', 이름: 이름, 색: 색, 만든때: Date.now() };
+    저.덧붙이기(키, 줄);
+    return 줄;
+  }
+
   /* 🔴 안 끝난 업무는 지난 날 칸에 갇히지 않고 오늘로 따라온다 — 체크리스트가 쓰는 규칙 그대로다.
      끝난 것만 제 날짜에 남는다. 안 그러면 넘긴 일이 달을 넘기며 조용히 사라진다. */
   function 그날업무(날짜) {
@@ -356,12 +381,36 @@ window.ZG = window.ZG || {};
     if (ZG.메모자료) ZG.메모자료.서명걸기(줄);
   }
 
+  var 그림 = {
+    수정: '<path d="M4 20.5h4L20.2 8.3a2 2 0 0 0 0-2.8l-1.7-1.7a2 2 0 0 0-2.8 0L3.5 16v4.5z"/><path d="M14.5 6.2l3.3 3.3"/>',
+    삭제: '<path d="M4 6.5h16"/><path d="M9.5 6.5V4.8a1.3 1.3 0 0 1 1.3-1.3h2.4a1.3 1.3 0 0 1 1.3 1.3v1.7"/><path d="M6.6 6.5l.9 13.2a1.3 1.3 0 0 0 1.3 1.3h6.4a1.3 1.3 0 0 0 1.3-1.3l.9-13.2"/>'
+  };
+
   function 업무카드(r) {
-    var 몸 = 만들기('div', { class: 'body' }, [만들기('div', { class: 't', text: r.제목 || '(제목 없음)' })]);
+    var 몸 = 만들기('div', { class: 'body' });
+
+    // 갈래는 색 점 하나로 붙는다 — 이름을 길게 쓰면 할 일 글씨가 밀린다
+    var 제목줄 = 만들기('div', { class: 't' });
+    if (r.갈래) {
+      제목줄.appendChild(만들기('span', {
+        class: '갈래점', style: 'background:' + (갈래색(r.갈래) || 'var(--color-text-faint)'),
+        title: r.갈래
+      }));
+    }
+    제목줄.appendChild(document.createTextNode(r.제목 || '(제목 없음)'));
+    몸.appendChild(제목줄);
     if (r.상세) 몸.appendChild(만들기('div', { class: 'd', text: r.상세 }));
 
     var 끝줄 = 만들기('div', { class: 'm' });
-    (r.담당 || []).forEach(function (메일) {
+    if (r.갈래) {
+      끝줄.appendChild(만들기('span', {
+        class: '갈래칩', text: r.갈래,
+        style: '--갈래:' + (갈래색(r.갈래) || 'var(--color-border)')
+      }));
+    }
+    var 담당 = r.담당 || [];
+    if (!담당.length) 끝줄.appendChild(만들기('span', { class: 'who 전체', text: '전체' }));
+    else 담당.forEach(function (메일) {
       끝줄.appendChild(만들기('span', { class: 'who' }, [사람.얼굴(메일, 'sm'), document.createTextNode(사람.이름(메일))]));
     });
     if (r.예정 === 고른날 || r.완료) {
@@ -370,7 +419,7 @@ window.ZG = window.ZG || {};
       // 오늘로 따라온 지난 일 — 언제 것이었는지 보여 준다
       끝줄.appendChild(만들기('span', { class: 'late', text: '지난 ' + Number(r.예정.slice(8)) + '일' }));
     }
-    if (r.쓴이 && (r.담당 || []).indexOf(r.쓴이) < 0) {
+    if (r.쓴이 && 담당.indexOf(r.쓴이) < 0 && 담당.length) {
       끝줄.appendChild(만들기('span', { class: 'by', text: 사람.이름(r.쓴이) + '이 지시' }));
     }
     몸.appendChild(끝줄);
@@ -384,9 +433,27 @@ window.ZG = window.ZG || {};
     });
 
     var 카드 = 만들기('div', { class: 'tcard' + (r.완료 ? ' done' : '') }, [체크, 몸]);
-    카드.addEventListener('click', function () { 업무창(r, null); });
+
+    /* 쓸면 수정·삭제가 나온다 (2026-09-17 우람님). 메모 카드·체크리스트와 같은 몸짓이다 */
+    var 고침 = u.쓸기단추('수정', 'ed', function () { 업무창(r, null); }, 그림.수정);
+    var 지움 = u.쓸기단추('삭제', 'del', function () {
+      u.확인({ 제목: '「' + (r.제목 || '') + '」을 지울까요?', 확인글: '지우기', 위험: true }, function (예) {
+        if (!예) return;
+        저.지우기(키, r.id);
+        u.열린줄잊기();
+        피드다시();
+      });
+    }, 그림.삭제);
+    var 줄 = 만들기('div', { class: '쓸줄' }, [만들기('div', { class: '쓸단추' }, [고침, 지움]), 카드]);
+    var 닫기 = u.쓸기붙이기(카드, 152);   // 단추 두 개 × 76px
+
+    카드.addEventListener('click', function () {
+      if (u.방금끌었나()) return;
+      if (u.열린줄인가(닫기)) { 닫기(); return; }
+      업무창(r, null);
+    });
     if (ZG.메모자료) ZG.메모자료.서명걸기(카드);
-    return 카드;
+    return 줄;
   }
 
   function 명세서카드(s) {
@@ -422,60 +489,122 @@ window.ZG = window.ZG || {};
       return;
     }
     var 목 = 만들기('div', { class: 'tlist' });
+    u.열린줄잊기();   // 목록을 새로 그리는 참이다 — 쓸어서 열어 둔 줄의 닫기를 들고 있으면 헛돈다
     것들.forEach(function (r) { 목.appendChild(업무카드(r)); });
     서류.forEach(function (s) { 목.appendChild(명세서카드(s)); });
     자리.appendChild(목);
   }
 
-  /* ── 업무 창 ── 새로 등록하거나 고친다. 채팅 줄에서 올릴 때는 그 글이 제목으로 들어온다 */
+  /* ── 업무 창 ── 새로 등록하거나 고친다 (2026-09-17 우람님이 통째로 다시 잡으셨다).
+     위에서부터 — 업무 종류(갈래) · 업무 지정(누구) · 할 일 한 칸.
+     🔴 날짜 고르개를 두지 않는다. **달력에서 고른 그 날**에 잡힌다 —
+        날을 먼저 고르고 ＋ 를 누르는 것이 이 화면의 흐름이기 때문이다.
+        고칠 때는 원래 날을 그대로 둔다(다른 날로 옮기려면 지우고 그 날에 새로 넣는다). */
   function 업무창(있던것, 채팅줄것) {
     if (document.querySelector('.askbox')) return;
-    var 고름 = {};
-    ((있던것 && 있던것.담당) || []).forEach(function (m) { 고름[m] = true; });
+
+    var 갈래 = (있던것 && 있던것.갈래) || '';
+    var 맡을이 = 있던것 ? ((있던것.담당 || [])[0] || '') : '';   // '' 이면 전체다
     var 날 = (있던것 && 있던것.예정) || 고른날;
 
-    var 제목칸 = 만들기('input', { class: 'inp', type: 'text', maxlength: '80', placeholder: '할 일' });
-    제목칸.value = (있던것 && 있던것.제목) || (채팅줄것 && 채팅줄것.글.slice(0, 80)) || '';
-    var 상세칸 = 만들기('textarea', { class: 'inp', rows: '3' });
-    상세칸.value = (있던것 && 있던것.상세) || '';
-
-    var 사람줄 = 만들기('div', { class: 'pickrow' });
-    사람.목록().forEach(function (p) {
-      var b = 만들기('button', { type: 'button', class: 고름[p.id] ? 'on' : '' }, [
-        사람.얼굴(p.id, 'sm'), document.createTextNode(p.이름 || p.id)
-      ]);
-      b.addEventListener('click', function () {
-        if (고름[p.id]) delete 고름[p.id]; else 고름[p.id] = true;
-        b.classList.toggle('on', !!고름[p.id]);
-      });
-      사람줄.appendChild(b);
-    });
-
-    var 날줄 = 만들기('div', { class: 'pickrow' });
-    function 날단추(값, 글) {
-      var b = 만들기('button', { type: 'button', class: 날 === 값 ? 'on' : '', text: 글 });
-      b.addEventListener('click', function () {
-        날 = 값;
-        [].slice.call(날줄.children).forEach(function (x) { x.classList.remove('on'); });
-        b.classList.add('on');
-        날칸.value = 값;
-      });
-      날줄.appendChild(b);
-      return b;
+    /* ── 업무 종류 ── 고르개 + 「＋ 새 종류」 */
+    var 갈래칸 = 만들기('div', { class: '갈래줄' });
+    function 갈래그리기() {
+      u.비우기(갈래칸);
+      var 것들 = 갈래들();
+      function 칩(이름, 색) {
+        var b = 만들기('button', {
+          type: 'button', class: '갈래고르개' + (갈래 === 이름 ? ' on' : ''),
+          style: '--갈래:' + (색 || 'var(--color-border)'), text: 이름 || '없음'
+        });
+        b.addEventListener('click', function () { 갈래 = 이름; 갈래그리기(); });
+        갈래칸.appendChild(b);
+      }
+      칩('', '');
+      것들.forEach(function (g) { 칩(g.이름, g.색); });
+      var 새 = 만들기('button', { type: 'button', class: '갈래새', text: '＋ 새 종류' });
+      새.addEventListener('click', 새갈래창);
+      갈래칸.appendChild(새);
     }
-    var 오 = 오늘();
-    var 내일 = 날짜문자(new Date(Date.now() + 864e5));
-    var 모레 = 날짜문자(new Date(Date.now() + 1728e5));
-    날단추(오, '오늘');
-    날단추(내일, '내일');
-    날단추(모레, '모레');
-    var 날칸 = 만들기('input', { class: 'inp', type: 'date' });
-    날칸.value = 날;
-    날칸.addEventListener('change', function () {
-      날 = 날칸.value || 오;
-      [].slice.call(날줄.children).forEach(function (x) { x.classList.remove('on'); });
-    });
+    갈래그리기();
 
+    /* ── 업무 지정 ── 드롭다운 하나. 「전체」면 모두의 업무다 */
+    var 맡을칸 = 만들기('select', { class: 'inp' });
+    function 맡을그리기() {
+      u.비우기(맡을칸);
+      맡을칸.appendChild(만들기('option', { value: '', text: '전체 — 모두의 업무' }));
+      사람.목록().forEach(function (p) {
+        맡을칸.appendChild(만들기('option', { value: p.id, text: (p.이름 || p.id) + (p.직책 ? ' · ' + p.직책 : '') }));
+      });
+      맡을칸.value = 맡을이;
+    }
+    맡을그리기();
+    맡을칸.addEventListener('change', function () { 맡을이 = 맡을칸.value; });
+
+    /* ── 할 일 ── 제목·상세를 한 칸으로 합쳤다.
+       🔴 저장할 때 첫 줄을 제목으로, 나머지를 상세로 나눈다 — 카드 그리는 쪽을 안 고쳐도 된다 */
+    var 글칸 = 만들기('textarea', {
+      class: 'inp 할일칸', rows: '7',
+      placeholder: '무엇을 할까요\n\n첫 줄이 제목이 됩니다'
+    });
+    글칸.value = 있던것
+      ? [있던것.제목 || '', 있던것.상세 || ''].filter(Boolean).join('\n')
+      : (채팅줄것 ? 채팅줄것.글 : '');
+
+    /* ── 새 종류 만들기 ── 이름 + 색 */
+    function 새갈래창() {
+      if (document.querySelector('.askbox2')) return;
+      var 고른색 = 색판[갈래들().length % 색판.length];
+      var 이름칸 = 만들기('input', { class: 'inp', type: 'text', maxlength: '12', placeholder: '출하 · 관수 · 삽목 …' });
+
+      var 색줄 = 만들기('div', { class: '색줄' });
+      색판.forEach(function (c) {
+        var b = 만들기('button', {
+          type: 'button', class: '색알' + (c === 고른색 ? ' on' : ''), style: 'background:' + c, 'aria-label': c
+        });
+        b.addEventListener('click', function () {
+          고른색 = c;
+          [].slice.call(색줄.children).forEach(function (x) { x.classList.remove('on'); });
+          b.classList.add('on');
+        });
+        색줄.appendChild(b);
+      });
+
+      function 닫기2(만들까) {
+        document.removeEventListener('keydown', 열쇠2);
+        막2.remove(); 상자2.remove();
+        if (!만들까) return;
+        var 이름 = 이름칸.value.trim();
+        if (!이름) { u.토스트('종류 이름을 적어주세요'); return; }
+        if (갈래하나(이름)) { u.토스트('이미 있는 종류입니다'); 갈래 = 이름; 갈래그리기(); return; }
+        갈래넣기(이름, 고른색);
+        갈래 = 이름;
+        갈래그리기();
+      }
+      function 열쇠2(e) { if (e.key === 'Escape') { e.preventDefault(); 닫기2(false); } }
+
+      var 막2 = 만들기('div', { class: 'askscrim askscrim2' });
+      막2.addEventListener('click', function () { 닫기2(false); });
+      var 아니오2 = 만들기('button', { class: 'btn', type: 'button', text: '취소' });
+      아니오2.addEventListener('click', function () { 닫기2(false); });
+      var 예2 = 만들기('button', { class: 'btn main', type: 'button', text: '만들기' });
+      예2.addEventListener('click', function () { 닫기2(true); });
+
+      var 상자2 = 만들기('div', {
+        class: 'askbox askbox2' + (u.폰인가() ? ' sheetup' : ''), role: 'dialog', 'aria-modal': 'true'
+      }, [
+        만들기('h4', { text: '새 업무 종류' }),
+        만들기('div', { class: 'field' }, [만들기('label', { text: '이름' }), 이름칸]),
+        만들기('div', { class: 'field' }, [만들기('label', { text: '색' }), 색줄]),
+        만들기('div', { class: 'btnrow' }, [아니오2, 예2])
+      ]);
+      document.body.appendChild(막2);
+      document.body.appendChild(상자2);
+      document.addEventListener('keydown', 열쇠2);
+      setTimeout(function () { 이름칸.focus(); }, 20);
+    }
+
+    /* ── 저장 · 삭제 ── */
     function 닫기(어떻게) {
       document.removeEventListener('keydown', 열쇠);
       막.remove(); 상자.remove();
@@ -486,11 +615,15 @@ window.ZG = window.ZG || {};
         피드다시();
         return;
       }
-      var 제목 = 제목칸.value.trim();
-      if (!제목) { u.토스트('할 일을 적어주세요'); return; }
+      var 글 = 글칸.value.trim();
+      if (!글) { u.토스트('할 일을 적어주세요'); return; }
+      var 줄나눔 = 글.indexOf('\n');
       var 값 = {
-        제목: 제목, 상세: 상세칸.value.trim(),
-        담당: Object.keys(고름), 예정: 날
+        제목: (줄나눔 < 0 ? 글 : 글.slice(0, 줄나눔)).trim().slice(0, 120),
+        상세: 줄나눔 < 0 ? '' : 글.slice(줄나눔 + 1).trim(),
+        갈래: 갈래,
+        담당: 맡을이 ? [맡을이] : [],      // 빈 배열이 곧 「전체」다
+        예정: 날
       };
       if (있던것) {
         고치기(있던것.id, 값);
@@ -506,10 +639,13 @@ window.ZG = window.ZG || {};
       }
       피드다시();
     }
-    function 열쇠(e) { if (e.key === 'Escape') { e.preventDefault(); 닫기(null); } }
+    function 열쇠(e) {
+      if (e.key !== 'Escape' || document.querySelector('.askbox2')) return;
+      e.preventDefault(); 닫기(null);
+    }
 
     var 막 = 만들기('div', { class: 'askscrim' });
-    막.addEventListener('click', function () { 닫기(null); });
+    막.addEventListener('click', function () { if (!document.querySelector('.askbox2')) 닫기(null); });
     var 아니오 = 만들기('button', { class: 'btn', type: 'button', text: '취소' });
     아니오.addEventListener('click', function () { 닫기(null); });
     var 예 = 만들기('button', { class: 'btn main', type: 'button', text: 있던것 ? '고치기' : '업무 등록' });
@@ -529,13 +665,12 @@ window.ZG = window.ZG || {};
     단추줄.appendChild(예);
 
     var 상자 = 만들기('div', {
-      class: 'askbox' + (u.폰인가() ? ' sheetup' : ''), role: 'dialog', 'aria-modal': 'true'
+      class: 'askbox 업무창' + (u.폰인가() ? ' sheetup' : ''), role: 'dialog', 'aria-modal': 'true'
     }, [
-      만들기('h4', { text: 있던것 ? '업무 고치기' : '새 업무' }),
-      만들기('div', { class: 'field' }, [만들기('label', { text: '할 일' }), 제목칸]),
-      만들기('div', { class: 'field' }, [만들기('label', { text: '상세' }), 상세칸]),
-      만들기('div', { class: 'field' }, [만들기('label', { text: '누가 합니까' }), 사람줄]),
-      만들기('div', { class: 'field' }, [만들기('label', { text: '언제까지' }), 날줄, 날칸]),
+      만들기('h4', { text: (있던것 ? '업무 고치기' : '새 업무') + ' · ' + 날글(날) }),
+      만들기('div', { class: 'field' }, [만들기('label', { text: '업무 종류' }), 갈래칸]),
+      만들기('div', { class: 'field' }, [만들기('label', { text: '업무 지정' }), 맡을칸]),
+      만들기('div', { class: 'field' }, [만들기('label', { text: '할 일' }), 글칸]),
       단추줄
     ]);
 
@@ -543,9 +678,8 @@ window.ZG = window.ZG || {};
     document.body.appendChild(상자);
     document.addEventListener('keydown', 열쇠);
     if (ZG.메모자료) ZG.메모자료.서명걸기(상자);
-    setTimeout(function () { 제목칸.focus(); }, 20);
+    setTimeout(function () { 글칸.focus(); }, 20);
   }
-
   /* ══════════ 그리기 ══════════ */
 
   function 요약() {
