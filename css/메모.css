@@ -356,6 +356,12 @@
 /* 키보드가 올라오면 ↑ 를 뺀다 — 키보드의 ↵ 가 보내기다 (2026-09-17 우람님).
    사진 붙이는 ＋ 는 남는다 */
 .ph-shell.키보드 .wbar .send{display:none}
+/* 🔴 키보드가 올라오면 입력줄만 띄워 키보드 바로 위에 붙인다.
+   bottom 값은 19-홈 의 높이맞춤()이 「키보드가 가린 높이」로 넣어 준다.
+   sticky 로는 안 된다 — 아이폰은 키보드를 레이아웃에서 빼 주지 않는다 */
+.ph-shell.키보드 .wbar{position:fixed; left:0; right:0; bottom:0; z-index:60}
+/* 마지막 말이 그 입력줄 뒤로 숨지 않게 자리를 비워 둔다 */
+.ph-shell.키보드 .wfeed{padding-bottom:62px}
 
 /* 폰은 아래 탭바 위에 앉는다.
    🔴 .ph-body 의 넉넉한 아래 여백(96px)은 팹이 쓰는 것이다 — 입력줄이 있는 화면에서는 그만큼 뜬다.
@@ -370,15 +376,15 @@
 .pc-main .notice{max-width:700px}
 
 /* ══ 업무캘린더 ══ */
-/* 달력 칸의 담당자 색 점. 속 빈 점은 명세서다 */
+/* 달력 칸의 점 — **업무 갈래 색**이다 (2026-09-17 우람님). 색은 19-홈 이 인라인으로 넣는다.
+   갈래가 없는 업무는 기본 강조색. 속 빈 점은 명세서다 */
 .cal .d .dots{display:flex; gap:2px; height:5px; align-items:center}
 .cal .d .dots i{width:5px; height:5px; border-radius:50%; display:block; background:var(--color-accent)}
-.cal .d .dots i.색우{background:#C98F35} .cal .d .dots i.색지{background:#7FA164}
-.cal .d .dots i.색영{background:#9B7BAE} .cal .d .dots i.색나{background:#6E87AB}
-.cal .d .dots i.색다{background:#C4776A} .cal .d .dots i.색라{background:#9A9A5E}
 .cal .d .dots i.서{background:transparent; box-shadow:0 0 0 1.5px var(--color-text-faint)}
-.cal .d.on .dots i{background:var(--overlay-strong)}
-.cal .d.on .dots i.서{background:transparent; box-shadow:0 0 0 1.5px var(--overlay-strong)}
+/* 🔴 고른 날은 바탕이 짙다 — 점 색을 덮어쓰지 않고 흰 테를 둘러 떠 보이게 한다.
+   덮어쓰면 그 날만 갈래 색이 사라져 무슨 일인지 알 수 없다 */
+.cal .d.on .dots i{box-shadow:0 0 0 1px var(--color-on-accent)}
+.cal .d.on .dots i.서{background:transparent; box-shadow:0 0 0 1.5px var(--color-on-accent)}
 
 .tsec{display:flex; align-items:baseline; justify-content:space-between; margin:var(--space-lg) 0 var(--space-3xs)}
 .tsec h3{font-size:var(--font-xl); font-weight:var(--weight-bold); letter-spacing:-.02em}

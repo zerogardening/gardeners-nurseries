@@ -64,7 +64,7 @@ window.ZG = window.ZG || {};
     뒤.addEventListener('click', function () {
       if (견적속) ZG.견적폰.목록으로();
       else if (연것값) 닫기();
-      else location.href = 'index.html';
+      else location.href = '홈.html';   // 「뒤로」는 첫 화면인 홈으로
     });
     왼쪽.appendChild(뒤);
     왼쪽.appendChild(만들기('h1', { text: 머리.제목, style: 쓰는중 ? 'font-size:var(--font-4xl)' : null }));

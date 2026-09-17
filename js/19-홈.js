@@ -17,7 +17,7 @@ window.ZG = window.ZG || {};
   var 사람 = ZG.사람;
   var 요일 = ['일', '월', '화', '수', '목', '금', '토'];
 
-  var 뿌리, 껍데기, 본문, 피드칸, 목록칸, 입력칸;
+  var 뿌리, 껍데기, 본문, 피드칸, 목록칸, 입력칸, 입력줄칸;
   var 탭 = '채팅';            // '채팅' | '업무'
   var 달, 고른날;
   var 거르개 = '';            // '' | '내' | 사람 메일
@@ -108,20 +108,19 @@ window.ZG = window.ZG || {};
     });
   }
 
-  /* 달력 점 — 날짜 → 담당자 메일 목록. 명세서는 '서' 로 따로 센다 */
+  /* 달력 점 — 날짜 → **그 날 잡힌 업무의 갈래 색** 목록 (2026-09-17 우람님).
+     전에는 담당자 색으로 찍었는데, 갈래에 색을 달고 나니 달력에도 그 색이 보여야 한다.
+     같은 색은 한 번만, 한 칸에 넷까지. 명세서는 '서' 로 따로 세어 속 빈 점으로 그린다.
+     갈래가 없는 업무는 빈 문자열 — 기본 강조색으로 찍힌다. */
   function 달점들(달) {
     var 표 = {};
-    function 찍기(날짜, 누구) {
+    function 찍기(날짜, 색) {
       if (!날짜 || 날짜.slice(0, 7) !== 달) return;
       if (!표[날짜]) 표[날짜] = [];
-      if (표[날짜].indexOf(누구) < 0 && 표[날짜].length < 4) 표[날짜].push(누구);
+      if (표[날짜].indexOf(색) < 0 && 표[날짜].length < 4) 표[날짜].push(색);
     }
-    업무들().forEach(function (r) {
-      var 담당 = (r.담당 || []);
-      if (!담당.length) 찍기(r.예정, '');
-      else 담당.forEach(function (메일) { 찍기(r.예정, 메일); });
-    });
-    명세서들(달).forEach(function (s) { 찍기(s.작성일, '서') });
+    업무들().forEach(function (r) { 찍기(r.예정, 갈래색(r.갈래) || ''); });
+    명세서들(달).forEach(function (s) { 찍기(s.작성일, '서'); });
     return 표;
   }
 
@@ -281,6 +280,7 @@ window.ZG = window.ZG || {};
 
   function 입력줄() {
     var 통 = 만들기('div', { class: 'wbar' });
+    입력줄칸 = 통;
     var 더 = 만들기('button', { class: 'plus', type: 'button', text: '＋', 'aria-label': '더하기' });
     더.addEventListener('click', function () { u.토스트('사진은 다음에 붙입니다'); });
 
@@ -352,8 +352,9 @@ window.ZG = window.ZG || {};
           text: String(일)
         });
         var 점 = 만들기('span', { class: 'dots' });
-        (점표[날짜] || []).forEach(function (누구) {
-          점.appendChild(만들기('i', { class: 누구 === '서' ? '서' : ('색' + (사람.색결(누구) || '나')) }));
+        (점표[날짜] || []).forEach(function (색) {
+          if (색 === '서') 점.appendChild(만들기('i', { class: '서' }));
+          else 점.appendChild(만들기('i', 색 ? { style: 'background:' + 색 } : null));
         });
         칸.appendChild(점);
         칸.addEventListener('click', function () { 날고르기(날짜); });
@@ -781,14 +782,19 @@ window.ZG = window.ZG || {};
      🔴 visualViewport 를 재지 않고 focus/blur 로만 판단한다 — 아이폰은 칸에 커서가 들어간
         그 순간 키보드를 올리므로 이걸로 충분하고, 재는 쪽은 기기마다 어긋난다.
      🔴 화면을 다시 그리지 않는다. 결(class)만 붙였다 뗀다 — 치던 글은 그대로 있다. */
-  /* 🔴 키보드가 올라온 뒤의 **진짜 남은 높이**는 visualViewport 만 안다.
-     100dvh 는 키보드는 빼 주지만 그 위 도구줄(^ ∨ ✓ · 자동완성 띠)은 못 본다 —
-     그만큼 입력줄이 키보드에서 붕 떠 보인다 (2026-09-17 우람님 화면).
-     못 알아듣는 판에서는 지금까지처럼 dvh 로 돈다. */
+  /* ── 입력줄을 키보드 바로 위에 붙인다 ──
+     🔴 100dvh 는 키보드를 못 본다(규격상 가상 키보드는 dvh 에 안 들어간다).
+        그래서 키보드가 올라오면 입력줄이 그 아래로 깔리거나 붕 떠 보인다.
+     🔴 껍데기 높이를 건드리는 방식은 쓰지 않는다 — 한 번 해 봤더니 키보드가 올라오는
+        도중에 잰 값이 박혀 입력줄이 화면 꼭대기로 튀어 올랐다 (2026-09-17 우람님 화면).
+     지금 방식: 입력줄만 position:fixed 로 띄우고, 키보드가 가린 높이만큼 bottom 을 민다.
+        가린 높이 = 창 높이 − 보이는 높이 − 밀려난 만큼. 틀어져도 입력줄 한 줄만 어긋난다. */
   var 보임칸 = window.visualViewport || null;
   function 높이맞춤() {
-    if (!껍데기 || !보임칸) return;
-    껍데기.style.height = Math.round(보임칸.height) + 'px';
+    if (!껍데기 || !입력줄칸) return;
+    if (!보임칸) { 입력줄칸.style.bottom = ''; return; }
+    var 가림 = window.innerHeight - 보임칸.height - 보임칸.offsetTop;
+    입력줄칸.style.bottom = Math.max(0, Math.round(가림)) + 'px';
     if (피드칸) 피드칸.scrollTop = 피드칸.scrollHeight;
   }
 
@@ -809,13 +815,13 @@ window.ZG = window.ZG || {};
         보임칸.removeEventListener('resize', 높이맞춤);
         보임칸.removeEventListener('scroll', 높이맞춤);
       }
-      껍데기.style.height = '';   // dvh 로 되돌린다
+      if (입력줄칸) 입력줄칸.style.bottom = '';   // 제자리로 되돌린다
     }
   }
 
   function 다시그리기() {
     u.비우기(뿌리);
-    입력칸 = null; 목록칸 = null; 피드칸 = null;
+    입력칸 = null; 목록칸 = null; 피드칸 = null; 입력줄칸 = null;
     마지막폰 = u.폰인가();
     if (마지막폰) 폰뼈대(); else PC뼈대();
 

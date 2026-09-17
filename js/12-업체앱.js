@@ -68,7 +68,7 @@ window.ZG = window.ZG || {};
     var 왼쪽 = 만들기('div', { class: '왼' });
     var 뒤 = 만들기('button', { class: 'ph-back', type: 'button', text: '‹', 'aria-label': '뒤로' });
     뒤.addEventListener('click', function () {
-      if (탭 === '등록') location.href = 'index.html';
+      if (탭 === '등록') location.href = '홈.html';   // 「뒤로」는 첫 화면인 홈으로
       else 탭으로('등록');
     });
     왼쪽.appendChild(뒤);
