@@ -61,7 +61,7 @@
       <div class="줄"><button class="btn main" type="submit">로그인</button></div>
     </form>
 
-    <!-- ── 회원가입 ── 이름 · 직책 · 이메일 · 비밀번호 넷뿐이다 (2026-09-17 우람님) -->
+    <!-- ── 회원가입 ── 이름 · 직책 · 이메일 · 비밀번호(두 번) 뿐이다 (2026-09-17 우람님) -->
     <form id="가입폼" class="숨김">
       <label class="칸"><span>이름</span>
         <input class="inp" id="가입이름" autocomplete="name" required></label>
@@ -71,6 +71,8 @@
         <input class="inp" id="가입아이디" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" required></label>
       <label class="칸"><span>비밀번호</span>
         <input class="inp" id="가입비번" type="password" autocomplete="new-password" minlength="6" required></label>
+      <label class="칸"><span>비밀번호 다시</span>
+        <input class="inp" id="가입비번2" type="password" autocomplete="new-password" minlength="6" required></label>
       <div class="줄"><button class="btn main" type="submit">가입하기</button></div>
     </form>
 
@@ -165,9 +167,11 @@
     var 직책 = document.getElementById('가입직책').value.trim();
     var 아이디 = document.getElementById('가입아이디').value.trim();
     var 비번 = document.getElementById('가입비번').value;
+    var 비번2 = document.getElementById('가입비번2').value;
     if (!이름 || !직책 || !아이디) { 알림('빈칸을 채워주세요', true); return; }
     if (!/^[^\s@]+@[^\s@.]+\.[^\s@]+$/.test(아이디)) { 알림('이메일 주소를 확인해 주세요', true); return; }
     if (비번.length < 6) { 알림('비밀번호는 6자 이상입니다', true); return; }
+    if (비번 !== 비번2) { 알림('비밀번호가 서로 다릅니다', true); document.getElementById('가입비번2').focus(); return; }
 
     알림('가입하는 중…', false);
     /* 🔴 이름·직책은 user_metadata 로 넣는다. 사람 표를 따로 만들지 않는다 */
