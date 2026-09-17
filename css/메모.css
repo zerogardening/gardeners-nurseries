@@ -250,7 +250,11 @@
 .내얼굴{border:none; background:none; padding:0; cursor:pointer; line-height:0}
 
 /* ══ 채팅 ══ */
+/* 🔴 카톡처럼 **아래에서부터** 차오른다. margin-top:auto 가 그 일을 한다 —
+   줄이 몇 개뿐일 때 위에 붙어 있으면 방금 보낸 말이 화면 저 위로 올라가 어색하다.
+   줄이 많아지면 auto 여백이 0 으로 접히고 그냥 굴러간다. */
 .wfeed{display:flex; flex-direction:column; min-height:0}
+.wfeed > .wlist{margin-top:auto}
 .wlist{display:flex; flex-direction:column; gap:var(--space-md)}
 .wday{
   display:flex; align-items:center; gap:var(--space-sm); margin:var(--space-md) 0 var(--space-3xs);
@@ -332,7 +336,9 @@
    🔴 .ph-body 의 넉넉한 아래 여백(96px)은 팹이 쓰는 것이다 — 입력줄이 있는 화면에서는 그만큼 뜬다.
       홈 채팅은 여백을 줄이고, 피드가 남는 높이를 먹어 입력줄을 바닥으로 민다. */
 .ph-shell .wbar{bottom:var(--탭바높이)}
-.ph-shell .wfeed{flex:1; min-height:0; padding-bottom:var(--space-sm)}
+/* 폰에서는 피드 칸 **안에서만** 굴린다 — 머리줄·상단탭·공지·입력줄은 제자리에 붙어 있는다.
+   이래야 방금 보낸 말이 늘 입력칸 바로 위에 있다 */
+.ph-shell .wfeed{flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:var(--space-sm)}
 .ph-body.홈채팅{padding-bottom:var(--탭바높이)}
 .pc-main .wbar{max-width:700px; border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); margin-top:var(--space-lg)}
 .pc-main .wlist{max-width:700px}

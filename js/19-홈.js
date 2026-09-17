@@ -553,8 +553,9 @@ window.ZG = window.ZG || {};
      통째로 다시 그리면 치던 문장과 한글 조합이 통째로 날아간다. 이것이 01b 의 예외를 떠받친다. */
   function 피드다시(바닥으로) {
     if (!목록칸) { 다시그리기(); return; }
-    var 바닥가까이 = 바닥으로 === true ||
-      (피드칸 ? (피드칸.scrollHeight - 피드칸.scrollTop - 피드칸.clientHeight < 80) : false);
+    /* 옛 글을 읽는 중이면 끌어내리지 않는다. 바닥에서 80px 안에 있을 때만 따라 내려간다 */
+    var 바닥가까이 = 바닥으로 === true || !피드칸 ||
+      (피드칸.scrollHeight - 피드칸.scrollTop - 피드칸.clientHeight < 80);
 
     if (탭 === '채팅') {
       var 띠칸 = 뿌리.querySelector('.notice-자리');
