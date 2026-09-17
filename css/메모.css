@@ -185,14 +185,18 @@
 .ckadd{margin-bottom:var(--space-lg)}
 .cklist{display:flex; flex-direction:column; gap:var(--space-sm)}
 
-/* 쓸기 짜임(.쓸줄·.쓸단추)은 공통.css 로 올라갔다 — 메모 카드가 같은 것을 쓴다.
-   여기 남은 것은 색뿐이다. 🔴 결 이름이 `.ed` 인 것은 일부러다 — `.edit` 는 본문 편집칸이 이미 쓰고 있다 */
-.쓸단추 .ed{background:#8E8E93}     /* 아이폰 메모장 회색 */
-.쓸단추 .del{background:#FF3B30}    /* 아이폰 메모장 빨강 */
-/* 메모 카드를 쓸면 나오는 셋 — 진행중 · 완료 · 보류 (2026-09-17 우람님) */
-.쓸단추 .진행중{background:#8E8E93}
-.쓸단추 .완료{background:#34C759}
-.쓸단추 .보류{background:#FF9500}
+/* 쓸기 짜임(.쓸줄·.쓸단추)은 공통.css 로 올라갔다 — 메모 카드·업무 카드가 같은 것을 쓴다.
+   여기 남은 것은 색뿐이다. 🔴 결 이름이 `.ed` 인 것은 일부러다 — `.edit` 는 본문 편집칸이 이미 쓰고 있다.
+   🔴 색은 아이폰 기본색(#8E8E93·#FF3B30·#34C759)을 쓰지 않는다 (2026-09-17 우람님).
+      이 앱은 앞치마 갈색과 벽돌빛으로 짜여 있어 그 파랑·빨강이 혼자 튄다.
+      :root 변수를 쓰므로 나중에 배색을 갈면 여기도 저절로 따라온다 */
+.쓸단추 .ed{background:var(--color-accent)}          /* 앞치마 갈색 */
+.쓸단추 .del{background:var(--color-danger)}         /* 벽돌빛 */
+/* 메모 카드를 쓸면 나오는 셋 — 진행중 · 완료 · 보류 (2026-09-17 우람님).
+   메모 카드의 바탕색(.mcard.hold/.done)과 같은 갈래로 읽히게 맞췄다 */
+.쓸단추 .진행중{background:var(--color-text-muted)}
+.쓸단추 .완료{background:#2F7A4A}
+.쓸단추 .보류{background:var(--color-gold-dark, #E0A445); color:var(--color-gold-ink, #4A3226)}
 
 .ckcard{
   position:relative; display:flex; gap:var(--space-md); align-items:flex-start;

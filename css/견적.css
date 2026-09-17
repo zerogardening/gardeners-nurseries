@@ -85,11 +85,16 @@ tr.editing td{background:var(--color-accent-bg)}
   padding-top:var(--space-md); border-top:var(--border-width) solid var(--color-border-faint);
 }
 .qcard .foot .tel{font-family:var(--font-mono); font-size:var(--font-xs); color:var(--color-text-muted); font-weight:var(--weight-semibold)}
+/* 수화기 아이콘 + 「전화」. 🔴 이모지를 안 쓴다 — 기기마다 그림도 색도 제각각이다 (15c 참조) */
 .qcard .foot .call{
-  margin-left:auto; font-size:var(--font-xs); font-weight:var(--weight-bold); color:var(--color-accent-dark);
+  margin-left:auto; display:inline-flex; align-items:center; gap:var(--space-3xs);
+  font-size:var(--font-xs); font-weight:var(--weight-bold); color:var(--color-accent-dark);
   background:var(--color-accent-bg); border:var(--border-width) solid var(--color-accent-border);
   border-radius:var(--radius-pill); padding:var(--pad-tag); text-decoration:none;
+  box-shadow:var(--shadow-btn); line-height:1;
 }
+.qcard .foot .call .ico{width:15px; height:15px; display:block; flex-shrink:0}
+.qcard .foot .call:active{background:var(--color-accent); color:var(--color-on-accent); border-color:var(--color-accent-dark)}
 .addbtn{
   height:44px; border-radius:var(--radius-md); background:var(--color-surface);
   border:var(--border-width) dashed var(--color-border); color:var(--color-accent-dark);

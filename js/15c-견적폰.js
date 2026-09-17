@@ -92,7 +92,15 @@ window.ZG = window.ZG || {};
     var 바닥 = 만들기('div', { class: 'foot' }, [만들기('span', { class: 'tel', text: q.연락처 || '연락처 없음' })]);
     var 숫 = 자.숫자만(q.연락처);
     if (숫.length >= 8) {
-      var 전화 = 만들기('a', { class: 'call', href: 'tel:' + 숫, text: '📞 전화' });
+      /* 🔴 이모지(📞)를 쓰지 않는다 — 아이폰·안드로이드·PC 가 제각각 다른 그림에 다른 색으로 그린다.
+         24×24 선 아이콘 하나로 통일한다(04-공통UI 아이콘들과 같은 규격). 색은 currentColor 를 따라간다 */
+      var 전화 = 만들기('a', {
+        class: 'call', href: 'tel:' + 숫,
+        html: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85"' +
+              ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+              '<path d="M7.6 3.5H4.9A1.5 1.5 0 0 0 3.4 5.1c0 8.1 6.6 14.7 14.7 14.7a1.5 1.5 0 0 0 1.5-1.5v-2.7' +
+              'l-3.6-1.2-1.8 1.8a11.6 11.6 0 0 1-5.3-5.3l1.8-1.8z"/></svg>전화'
+      });
       전화.addEventListener('click', function (e) { e.stopPropagation(); });
       바닥.appendChild(전화);
     }
