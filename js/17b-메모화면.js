@@ -9,6 +9,7 @@ window.ZG = window.ZG || {};
   var 두자리 = 자.두자리, 오늘 = 자.오늘, 새id = 자.새id;
   var 제목뽑기 = 자.제목뽑기, 미리보기 = 자.미리보기, 카드미리 = 자.카드미리;
   var 한장 = 자.한장, 목록 = 자.목록;
+  var 일지한장 = 자.일지한장, 일지id = 자.일지id;
   var 폴더세기 = 자.폴더세기, 일지날들 = 자.일지날들;
   var 상태들 = 자.상태들, 상태정규화 = 자.상태정규화;
   var 저장 = 자.저장, 지우기 = 자.지우기, 옮기기 = 자.옮기기, 상태바꾸기 = 자.상태바꾸기;
@@ -743,9 +744,8 @@ window.ZG = window.ZG || {};
   }
 
   function 일지카드(r) {
-    // 🔴 일지는 농장에 한 권이다(하루 한 장). 메모·체크와 달리 나누지 않으므로 누가 썼는지를 단다
+    /* 일지도 각자 제 것이 됐다 (2026-09-17) — 내 일지에 내 이름을 다는 것은 군더더기라 뺐다 */
     var 끝줄 = 만들기('div', { class: 'mm' }, [만들기('span', { class: 'tm', text: '고친때 ' + 시각글(r.고친때) })]);
-    if (r.쓴이 && ZG.사람) 끝줄.appendChild(만들기('span', { class: 'ftag', text: ZG.사람.이름(r.쓴이) }));
     var 몸 = 만들기('div', { class: 'body' }, [
       만들기('div', { class: 'mt', text: 날씨글(r.날씨) || 제목뽑기(r.본문) }),
       만들기('div', { class: 'mp', text: 카드미리(r.본문) }),
@@ -775,12 +775,12 @@ window.ZG = window.ZG || {};
   function 그리기일지(자리) {
     마무리();
     var 달 = ZG.메모앱.달(), 고른날 = ZG.메모앱.고른날();
-    var 있던것 = 한장('일지-' + 고른날);
+    var 있던것 = 일지한장(고른날);   // 옛 규칙으로 쓴 줄도 찾아 준다
 
     if (u.폰인가()) {
       if (ZG.메모앱.연것()) {
         폼차리기('일지', 있던것, 고른날);
-        편집.id = '일지-' + 고른날;
+        편집.id = 있던것 ? 있던것.id : 일지id(고른날);
         자리.appendChild(날씨칸());
         자리.appendChild(작업내용칸());
         자리.appendChild(특이사항칸());
@@ -793,12 +793,12 @@ window.ZG = window.ZG || {};
         자리.appendChild(목);
         서명걸기(목);
       }
-      자리.appendChild(팹(function () { ZG.메모앱.열기('일지-' + 고른날); }));
+      자리.appendChild(팹(function () { ZG.메모앱.열기(일지id(고른날)); }));
       return;
     }
 
     폼차리기('일지', 있던것, 고른날);
-    편집.id = '일지-' + 고른날;
+    편집.id = 있던것 ? 있던것.id : 일지id(고른날);
     var 왼 = 만들기('div', { class: 'cal-col' }, [만들기('div', { class: 'card' }, [달력(달)])]);
     var 오 = 만들기('div', { class: 'right' }, [PC일지카드()]);
     자리.appendChild(만들기('div', { class: 'cols' }, [왼, 오]));
@@ -812,7 +812,7 @@ window.ZG = window.ZG || {};
   function 폰머리일지() {
     var 고른날 = ZG.메모앱.고른날();
     if (!ZG.메모앱.연것()) return { 제목: '영농일지' };
-    return { 제목: 날짜글(고른날), 저장: 저장누름, 삭제: 한장('일지-' + 고른날) ? 삭제누름 : null };
+    return { 제목: 날짜글(고른날), 저장: 저장누름, 삭제: 일지한장(고른날) ? 삭제누름 : null };
   }
 
   window.addEventListener('pagehide', function () { if (편집) 저장하기(true); });
