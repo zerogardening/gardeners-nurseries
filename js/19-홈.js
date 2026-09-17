@@ -165,12 +165,35 @@ window.ZG = window.ZG || {};
     입력칸.focus();            // 🔴 피드만 갈았으므로 커서가 살아 있다
   }
 
+  /* 사진 한 장을 올려 한 줄로 보낸다. 치고 있던 글이 있으면 같이 실린다 */
+  function 사진보내기(파일, 단추) {
+    var 자 = ZG.메모자료;
+    if (!자 || !자.저장통()) { u.토스트('사진은 인터넷이 있어야 올라갑니다'); return; }
+    var id = 새id();
+    var 글 = 입력칸 ? 입력칸.value.trim() : '';
+    if (단추) { 단추.disabled = true; 단추.textContent = '…'; }
+    u.토스트('사진 올리는 중…');
+    자.올리기(파일, id).then(function (경로) {
+      저.덧붙이기(키, {
+        id: id, 종류: '채팅', 글: 글, 사진: 경로,
+        쓴이: 나(), 때: Date.now(), 공지: false, 업무id: null
+      });
+      if (입력칸) { 입력칸.value = ''; 입력칸.style.height = ''; }
+      피드다시(true);
+    }).catch(function (e) {
+      console.warn(e);
+      u.토스트('사진을 못 올렸습니다');
+    }).then(function () {
+      if (단추) { 단추.disabled = false; 단추.textContent = '＋'; }
+    });
+  }
+
   /* 꾹 누르면 — 업무로 등록 · 공지로 올리기 · 복사 · 삭제 */
   function 줄시트(r) {
     var 항목 = [];
     if (!r.업무id) 항목.push({ 값: '업무', 글: '＋ 업무로 등록' });
     항목.push({ 값: '공지', 글: r.공지 ? '📌 공지 내리기' : '📌 공지로 올리기' });
-    항목.push({ 값: '복사', 글: '글자 복사' });
+    if (r.글) 항목.push({ 값: '복사', 글: '글자 복사' });
     if (r.쓴이 === 나()) 항목.push({ 값: '삭제', 글: '삭제' });
 
     u.고르기({ 제목: '이 메시지를', 항목: 항목 }, function (값) {
@@ -198,7 +221,13 @@ window.ZG = window.ZG || {};
     if (!내것) 이름줄.appendChild(document.createTextNode(사람.이름(r.쓴이) + ' '));
     이름줄.appendChild(만들기('span', { class: 'tm', text: 시각글(r.때) }));
     몸.appendChild(이름줄);
-    몸.appendChild(만들기('div', { class: 'wbub', text: r.글 }));
+
+    /* 사진은 경로만 저장돼 있다 — 그릴 때 서명 URL(1시간)을 묶어 받아 꽂는다(채팅그리기 끝의 서명걸기).
+       글 없이 사진만 보낸 줄은 말풍선 테를 얇게 해 사진이 곧 말풍선이 되게 한다 */
+    var 방울 = 만들기('div', { class: 'wbub' + (r.사진 && !r.글 ? ' 사진만' : '') });
+    if (r.글) 방울.appendChild(만들기('div', { class: 'tx', text: r.글 }));
+    if (r.사진) 방울.appendChild(만들기('img', { class: 'wshot', 'data-경로': r.사진, alt: '보낸 사진' }));
+    몸.appendChild(방울);
 
     if (r.업무id) {
       var 일 = 한장(r.업무id);
@@ -281,8 +310,17 @@ window.ZG = window.ZG || {};
   function 입력줄() {
     var 통 = 만들기('div', { class: 'wbar' });
     입력줄칸 = 통;
-    var 더 = 만들기('button', { class: 'plus', type: 'button', text: '＋', 'aria-label': '더하기' });
-    더.addEventListener('click', function () { u.토스트('사진은 다음에 붙입니다'); });
+    /* ＋ 사진 붙이기. 🔴 올리는 일은 17a-메모자료 것을 그대로 쓴다 —
+       줄이기(긴 변 1600 · JPEG 0.8) · 통(memo) · 서명 URL 까지 이미 다 있다. 두 벌을 만들지 않는다 */
+    var 사진칸 = 만들기('input', { type: 'file', accept: 'image/*', style: 'display:none' });
+    var 더 = 만들기('button', { class: 'plus', type: 'button', text: '＋', 'aria-label': '사진 붙이기' });
+    더.addEventListener('mousedown', function (e) { e.preventDefault(); });   // 커서가 안 빠지게
+    더.addEventListener('click', function () { 사진칸.click(); });
+    사진칸.addEventListener('change', function () {
+      var f = 사진칸.files && 사진칸.files[0];
+      사진칸.value = '';                 // 같은 사진을 다시 골라도 change 가 뜨게
+      if (f) 사진보내기(f, 더);
+    });
 
     /* 🔴 data-그려도됨 — 01b 의 「치는 중엔 안 그린다」 방패를 이 칸만 지나가게 한다.
        그 약속은 아래 피드다시() 가 지킨다. 이 마디는 절대 갈아끼우지 않는다. */
@@ -314,7 +352,7 @@ window.ZG = window.ZG || {};
     보냄.addEventListener('mousedown', function (e) { e.preventDefault(); });
     보냄.addEventListener('click', 보내기);
 
-    통.appendChild(더); 통.appendChild(입력칸); 통.appendChild(보냄);
+    통.appendChild(더); 통.appendChild(사진칸); 통.appendChild(입력칸); 통.appendChild(보냄);
     return 통;
   }
 
