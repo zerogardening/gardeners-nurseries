@@ -287,16 +287,20 @@ window.ZG = window.ZG || {};
     /* 🔴 data-그려도됨 — 01b 의 「치는 중엔 안 그린다」 방패를 이 칸만 지나가게 한다.
        그 약속은 아래 피드다시() 가 지킨다. 이 마디는 절대 갈아끼우지 않는다. */
     입력칸 = 만들기('textarea', {
-      class: 'inp', rows: '1', placeholder: '메시지를 입력하세요', 'data-그려도됨': ''
+      class: 'inp', rows: '1', placeholder: '메시지를 입력하세요', 'data-그려도됨': '',
+      enterkeyhint: 'send'   // 폰 키보드의 ↵ 자리에 「보내기」라고 뜬다
     });
     입력칸.addEventListener('input', function () {
       입력칸.style.height = 'auto';
       입력칸.style.height = Math.min(입력칸.scrollHeight, 120) + 'px';
     });
+    /* 🔴 엔터가 보내기다 — 폰도 마찬가지다 (2026-09-17 우람님: 키보드가 올라오면 ↑ 를 뺀다).
+       Shift+Enter 는 줄바꿈이다. 폰에는 Shift 가 없으니 폰에서는 줄바꿈이 없다 — 채팅이라 괜찮다.
+       🔴 조합 중(한글을 만들고 있는 중)의 엔터는 글자를 고르는 것이지 보내는 것이 아니다.
+          이걸 안 막으면 「하이」를 치다 엔터를 눌렀을 때 「하ㅇ」가 날아간다. */
     입력칸.addEventListener('keydown', function (e) {
-      if (u.폰인가()) return;                       // 폰은 단추로만 보낸다 — 엔터는 줄바꿈이다
       if (e.key !== 'Enter' || e.shiftKey) return;
-      if (e.isComposing || e.keyCode === 229) return;   // 🔴 한글 조합 중의 엔터는 글자를 고르는 것이다
+      if (e.isComposing || e.keyCode === 229) return;
       e.preventDefault();
       보내기();
     });
@@ -777,12 +781,35 @@ window.ZG = window.ZG || {};
      🔴 visualViewport 를 재지 않고 focus/blur 로만 판단한다 — 아이폰은 칸에 커서가 들어간
         그 순간 키보드를 올리므로 이걸로 충분하고, 재는 쪽은 기기마다 어긋난다.
      🔴 화면을 다시 그리지 않는다. 결(class)만 붙였다 뗀다 — 치던 글은 그대로 있다. */
+  /* 🔴 키보드가 올라온 뒤의 **진짜 남은 높이**는 visualViewport 만 안다.
+     100dvh 는 키보드는 빼 주지만 그 위 도구줄(^ ∨ ✓ · 자동완성 띠)은 못 본다 —
+     그만큼 입력줄이 키보드에서 붕 떠 보인다 (2026-09-17 우람님 화면).
+     못 알아듣는 판에서는 지금까지처럼 dvh 로 돈다. */
+  var 보임칸 = window.visualViewport || null;
+  function 높이맞춤() {
+    if (!껍데기 || !보임칸) return;
+    껍데기.style.height = Math.round(보임칸.height) + 'px';
+    if (피드칸) 피드칸.scrollTop = 피드칸.scrollHeight;
+  }
+
   function 키보드(켬) {
     if (!껍데기) return;
     껍데기.classList.toggle('키보드', !!켬);
-    if (켬 && 피드칸) {
-      // 접히면서 생긴 높이만큼 아래로 따라 내려간다
-      setTimeout(function () { if (피드칸) 피드칸.scrollTop = 피드칸.scrollHeight; }, 60);
+    if (켬) {
+      if (보임칸) {
+        보임칸.addEventListener('resize', 높이맞춤);
+        보임칸.addEventListener('scroll', 높이맞춤);
+      }
+      높이맞춤();
+      // 키보드가 다 올라온 뒤에 한 번 더 — 올라오는 동안 잰 높이는 아직 옛것이다
+      setTimeout(높이맞춤, 80);
+      setTimeout(높이맞춤, 300);
+    } else {
+      if (보임칸) {
+        보임칸.removeEventListener('resize', 높이맞춤);
+        보임칸.removeEventListener('scroll', 높이맞춤);
+      }
+      껍데기.style.height = '';   // dvh 로 되돌린다
     }
   }
 

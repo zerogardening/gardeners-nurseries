@@ -346,6 +346,12 @@
 .ph-shell.키보드 .ph-sub,
 .ph-shell.키보드 .toggle,
 .ph-shell.키보드 .notice-자리{display:none}
+/* 🔴 키보드가 덮고 있으면 아래 안전여백은 쓸 데가 없다.
+   아이폰이 그 값을 계속 34px 로 물고 있어, 안 걷으면 입력줄이 그만큼 떠 보인다 */
+.ph-shell.키보드 .wbar{padding-bottom:8px}
+/* 키보드가 올라오면 ↑ 를 뺀다 — 키보드의 ↵ 가 보내기다 (2026-09-17 우람님).
+   사진 붙이는 ＋ 는 남는다 */
+.ph-shell.키보드 .wbar .send{display:none}
 
 /* 폰은 아래 탭바 위에 앉는다.
    🔴 .ph-body 의 넉넉한 아래 여백(96px)은 팹이 쓰는 것이다 — 입력줄이 있는 화면에서는 그만큼 뜬다.
