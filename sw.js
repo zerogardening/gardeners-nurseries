@@ -22,7 +22,7 @@
 /* 이름을 올리면 activate 가 옛 이름의 캐시를 통째로 버린다 —
    9/17 사고로 폰에 낀 옛 판을 한 번에 털어 내려고 v2 로 올렸다.
    평소엔 안 올린다. `?v=` 만으로 충분하다 */
-var 캐시이름 = 'gn-v2';
+var 캐시이름 = 'gn-v3';   // 푸시 핸들러가 붙어 이름을 올린다 (2026-09-17)
 
 self.addEventListener('install', function () {
   self.skipWaiting();                      // 새 sw 를 다음 방문까지 재우지 않는다
@@ -103,4 +103,46 @@ self.addEventListener('fetch', function (e) {
     return;
   }
   /* 아이콘·폰트·manifest 는 브라우저에 맡긴다 — 거의 안 바뀌고 수도 적다 */
+});
+
+/* ══════════════════════════════════════════════════════════════
+   푸시 알림 (2026-09-17 우람님)
+   앱이 꺼져 있어도 서비스워커는 깨어나 이 두 자리를 탄다.
+   보내는 쪽은 Supabase Edge Function 이다 — 설치/푸시알림.md 참조.
+   ══════════════════════════════════════════════════════════════ */
+
+self.addEventListener('push', function (e) {
+  var 짐 = { 제목: '정원사의 널서리', 글: '새 소식이 있습니다', 주소: '홈.html' };
+  try { if (e.data) 짐 = Object.assign(짐, e.data.json()); } catch (err) { /* 그냥 기본값으로 */ }
+
+  e.waitUntil(
+    self.registration.showNotification(짐.제목, {
+      body: 짐.글,
+      icon: 'icons/icon-192.png?v=2',
+      badge: 'icons/icon-192.png?v=2',
+      /* 🔴 태그를 주면 같은 갈래의 알림이 쌓이지 않고 마지막 것으로 갈린다.
+         세 명이 연달아 말할 때 알림이 스무 개 쌓이면 아무도 안 본다 */
+      tag: 짐.갈래 || '널서리',
+      renotify: true,
+      data: { 주소: 짐.주소 }
+    })
+  );
+});
+
+/* 알림을 누르면 — 이미 열려 있는 창이 있으면 그걸 앞으로, 없으면 새로 연다 */
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  var 갈곳 = (e.notification.data && e.notification.data.주소) || '홈.html';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (창들) {
+      for (var i = 0; i < 창들.length; i++) {
+        var c = 창들[i];
+        if (c.url.indexOf(self.location.origin) === 0 && 'focus' in c) {
+          c.navigate(갈곳);
+          return c.focus();
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(갈곳);
+    })
+  );
 });

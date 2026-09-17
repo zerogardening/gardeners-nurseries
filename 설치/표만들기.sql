@@ -6,13 +6,13 @@
 create or replace function public.gn_손댐() returns trigger language plpgsql as $t$
 begin new.수정시각 := now(); new.수정자 := auth.uid(); return new; end $t$;
 
--- ② 표 12개 + 인덱스 + Realtime
+-- ② 표 13개 + 인덱스 + Realtime
 do $$
 declare t text; n text;
 begin
   foreach t in array array['품목','입고','출고','재고조정','업체',
                            '명세서','명세서줄','견적요청','메모',
-                           '사람','업무','공유설정']
+                           '사람','업무','구독','공유설정']
   loop
     n := 'gn_' || t;
     execute format('create table if not exists public.%I (
@@ -38,7 +38,7 @@ declare t text; n text;
 begin
   foreach t in array array['품목','입고','출고','재고조정','업체',
                            '명세서','명세서줄','견적요청','메모',
-                           '사람','업무','공유설정']
+                           '사람','업무','구독','공유설정']
   loop
     n := 'gn_' || t;
     execute format('alter table public.%I enable row level security', n);
@@ -49,7 +49,7 @@ begin
   end loop;
 end $$;
 
--- ④ 확인 — 표 12개가 나와야 한다
+-- ④ 확인 — 표 13개가 나와야 한다
 select table_name from information_schema.tables
  where table_schema='public' and table_name like 'gn\_%'
  order by table_name;
