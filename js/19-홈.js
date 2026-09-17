@@ -17,7 +17,7 @@ window.ZG = window.ZG || {};
   var 사람 = ZG.사람;
   var 요일 = ['일', '월', '화', '수', '목', '금', '토'];
 
-  var 뿌리, 껍데기, 본문, 피드칸, 목록칸, 입력칸, 입력줄칸;
+  var 뿌리, 껍데기, 본문, 피드칸, 목록칸, 입력칸;
   var 탭 = '채팅';            // '채팅' | '업무'
   var 달, 고른날;
   var 거르개 = '';            // '' | '내' | 사람 메일
@@ -309,7 +309,6 @@ window.ZG = window.ZG || {};
 
   function 입력줄() {
     var 통 = 만들기('div', { class: 'wbar' });
-    입력줄칸 = 통;
     /* ＋ 사진 붙이기. 🔴 올리는 일은 17a-메모자료 것을 그대로 쓴다 —
        줄이기(긴 변 1600 · JPEG 0.8) · 통(memo) · 서명 URL 까지 이미 다 있다. 두 벌을 만들지 않는다 */
     var 사진칸 = 만들기('input', { type: 'file', accept: 'image/*', style: 'display:none' });
@@ -819,20 +818,29 @@ window.ZG = window.ZG || {};
      🔴 visualViewport 를 재지 않고 focus/blur 로만 판단한다 — 아이폰은 칸에 커서가 들어간
         그 순간 키보드를 올리므로 이걸로 충분하고, 재는 쪽은 기기마다 어긋난다.
      🔴 화면을 다시 그리지 않는다. 결(class)만 붙였다 뗀다 — 치던 글은 그대로 있다. */
-  /* ── 입력줄을 키보드 바로 위에 붙인다 ──
+  /* ── 키보드가 올라오면 껍데기를 그만큼 줄인다 ──
      🔴 100dvh 는 키보드를 못 본다(규격상 가상 키보드는 dvh 에 안 들어간다).
-        그래서 키보드가 올라오면 입력줄이 그 아래로 깔리거나 붕 떠 보인다.
-     🔴 껍데기 높이를 건드리는 방식은 쓰지 않는다 — 한 번 해 봤더니 키보드가 올라오는
-        도중에 잰 값이 박혀 입력줄이 화면 꼭대기로 튀어 올랐다 (2026-09-17 우람님 화면).
-     지금 방식: 입력줄만 position:fixed 로 띄우고, 키보드가 가린 높이만큼 bottom 을 민다.
-        가린 높이 = 창 높이 − 보이는 높이 − 밀려난 만큼. 틀어져도 입력줄 한 줄만 어긋난다. */
+        진짜 남은 높이는 visualViewport 만 안다.
+
+     🔴 입력줄을 position:fixed 로 띄우는 방식은 버렸다 (2026-09-17 우람님 화면 두 번째).
+        fixed 는 **레이아웃 뷰포트** 기준인데, 아이폰은 키보드가 뜬 채 굴릴 때
+        보이는 창을 위아래로 흔든다 — 그때마다 입력줄이 따라 날아다닌다.
+        껍데기를 줄이면 입력줄은 그냥 흐름의 맨 아래에 앉아 있어 흔들릴 일이 없다.
+
+     🔴 처음에 이 방식이 터졌던 까닭은 따로 있었다 — .ph-body 가 안 줄어들고 있었다.
+        (플렉스 칸 기본값 min-height:auto. 메모.css 에서 고쳤다.) 그래서 이제 안전하다.
+
+     🔴 키보드가 **올라오는 도중**에 재면 엉뚱하게 작은 값이 잡힌다.
+        창의 1/4 보다 작은 값은 버린다 — 그 한 번을 박으면 대화 칸이 0 이 된다. */
   var 보임칸 = window.visualViewport || null;
   function 높이맞춤() {
-    if (!껍데기 || !입력줄칸) return;
-    if (!보임칸) { 입력줄칸.style.bottom = ''; return; }
-    var 가림 = window.innerHeight - 보임칸.height - 보임칸.offsetTop;
-    입력줄칸.style.bottom = Math.max(0, Math.round(가림)) + 'px';
-    if (피드칸) 피드칸.scrollTop = 피드칸.scrollHeight;
+    if (!껍데기 || !보임칸) return;
+    var 높이 = Math.round(보임칸.height);
+    if (높이 < window.innerHeight * 0.25) return;   // 올라오는 도중에 잰 값 — 버린다
+    껍데기.style.height = 높이 + 'px';
+    /* 🔴 여기서 맨 아래로 끌어내리지 않는다. 아이폰은 굴리는 중에도 보이는 창을 흔들어
+       이 함수를 부른다 — 끌어내리면 위로 올리려는 손을 도로 끌어내린다.
+       처음 올라올 때 한 번만 내리면 된다 (키보드() 참조). */
   }
 
   function 키보드(켬) {
@@ -844,21 +852,23 @@ window.ZG = window.ZG || {};
         보임칸.addEventListener('scroll', 높이맞춤);
       }
       높이맞춤();
-      // 키보드가 다 올라온 뒤에 한 번 더 — 올라오는 동안 잰 높이는 아직 옛것이다
-      setTimeout(높이맞춤, 80);
-      setTimeout(높이맞춤, 300);
+      // 키보드가 다 올라온 뒤에 한 번 더 — 올라오는 동안 잰 높이는 아직 옛것이다.
+      // 바닥으로 내리는 것도 여기서만 한다(높이맞춤 안에서 하면 굴릴 때마다 끌려 내려간다)
+      var 바닥으로 = function () { 높이맞춤(); if (피드칸) 피드칸.scrollTop = 피드칸.scrollHeight; };
+      setTimeout(바닥으로, 80);
+      setTimeout(바닥으로, 300);
     } else {
       if (보임칸) {
         보임칸.removeEventListener('resize', 높이맞춤);
         보임칸.removeEventListener('scroll', 높이맞춤);
       }
-      if (입력줄칸) 입력줄칸.style.bottom = '';   // 제자리로 되돌린다
+      껍데기.style.height = '';   // dvh 로 되돌린다
     }
   }
 
   function 다시그리기() {
     u.비우기(뿌리);
-    입력칸 = null; 목록칸 = null; 피드칸 = null; 입력줄칸 = null;
+    입력칸 = null; 목록칸 = null; 피드칸 = null;
     마지막폰 = u.폰인가();
     if (마지막폰) 폰뼈대(); else PC뼈대();
 
