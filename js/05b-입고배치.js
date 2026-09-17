@@ -35,8 +35,7 @@ window.ZG = window.ZG || {};
       만들기('div', { style: 'width:330px' }), 참조.자동완성칸
     ]));
     폼.appendChild(만들기('div', { class: 'row' }, [
-      내.필드('규격 <span class="req">*</span>', 내.규격칸(), 'flex:1'),
-      내.필드('판매단위', 단위칸(), 'width:104px')
+      내.필드('규격 <span class="req">*</span>', 내.규격칸(), 'flex:1')
     ]));
     폼.appendChild(만들기('div', { class: 'row bottom' }, [
       내.필드('수량 <span class="req">*</span>', 내.숫자칸('수량'), 'width:118px', '수량'),
@@ -81,12 +80,11 @@ window.ZG = window.ZG || {};
     참조.내역칸 = null;          // 🔴 내역은 「재고」 탭으로 갔다 — 내역다시() 는 이게 없으면 조용히 넘어간다
 
     return [
-      내.필드('입고업체 <span class="req">*</span> <span class="auto">오늘 계속 이 업체입니다</span>', 업체칸(), null, '입고업체'),
+      내.필드('입고업체 <span class="req">*</span>', 업체칸(), null, '입고업체'),
       내.필드('유통명 <span class="req">*</span>', 유통명칸(), null, '유통명'),
       참조.자동완성칸,
       내.필드('학명', 학명칸(), null, '학명'),
       내.필드('규격 <span class="req">*</span> <span class="auto">「치」로 들어와도 cm로 저장합니다</span>', 내.규격칸()),
-      내.필드('판매단위', 단위칸()),
       만들기('div', { class: 'pair' }, [
         내.필드('수량 <span class="req">*</span>', 내.숫자칸('수량'), null, '수량'),
         내.필드('매입단가 <span class="req">*</span>', 내.숫자칸('매입단가'), null, '매입단가')
@@ -100,9 +98,6 @@ window.ZG = window.ZG || {};
       저장
     ];
   }
-
-  /* 판매단위 — 한 번에 파는 수(구근 5구 한 묶음 등). 기본 1 */
-  function 단위칸() { return 내.입력칸('판매단위', { class: 'inp num', inputmode: 'numeric' }); }
 
   function 코드필드(코드칸, 스타일) {
     var f = 만들기('div', { class: 'field', style: 스타일 || null });
@@ -130,12 +125,22 @@ window.ZG = window.ZG || {};
     u.자동완성({ 입력: e, 담을곳: 참조.자동완성칸, 고름: 내.후보채우기, 새로: 내.코드갱신 });
     return e;
   }
+  /* 등록된 업체는 치는 중에 후보로 뜬다. 🔴 목록에 없는 업체도 그냥 칠 수 있다 —
+     새 이름은 저장할 때 「새 업체로 등록할까요」 한 번 묻는다 (05c 업체확인) */
   function 업체칸() {
-    var 업체 = ZG.저장소.읽기(ZG.저장소.키.업체);
-    var e = 내.입력칸('입고업체', { list: 'zg-업체목록' });
-    var 목록 = 만들기('datalist', { id: 'zg-업체목록' });
-    목록.innerHTML = 업체.map(function (c) { return '<option value="' + u.안전(c.이름) + '">'; }).join('');
-    return 만들기('div', { style: 'position:relative' }, [e, 목록]);
+    var 감쌈 = 만들기('div', { class: 'acwrap' });
+    var e = 내.입력칸('입고업체');
+    감쌈.appendChild(e);
+    u.업체자동완성({
+      입력: e, 담을곳: 감쌈, 앞구분: '공급업체',
+      고름: function (c) {
+        상태.입고업체 = c.이름;
+        e.value = c.이름;
+        내.오류지우기('입고업체');
+        if (참조.유통명) 참조.유통명.focus();
+      }
+    });
+    return 감쌈;
   }
 
   ZG.입고배치 = { PC배치: PC배치, 폰배치: 폰배치, 업체칸: 업체칸 };

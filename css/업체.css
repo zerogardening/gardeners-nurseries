@@ -216,8 +216,8 @@ table.items .xbtn{
 /* PC 팝업 창 (업체 수정 시트 · 직접 입력) — 주문.css 와 같은 모양 */
 .pcscrim{position:fixed; inset:0; background:rgba(0,0,0,.34); z-index:60}
 .pcsheet{
-  position:fixed; z-index:61; top:8vh; left:50%; transform:translateX(-50%);
-  width:min(760px, 92vw); max-height:80vh; overflow:auto;
+  position:fixed; z-index:61; top:6vh; left:50%; transform:translateX(-50%);
+  width:min(760px, 92vw); max-height:88vh; overflow:auto;
   background:var(--color-bg); border-radius:var(--radius-lg);
   box-shadow:0 22px 54px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.07);
 }
@@ -228,14 +228,28 @@ table.items .xbtn{
 }
 .pcsheet .hd h3{font-size:var(--font-lg); font-weight:var(--weight-bold); letter-spacing:-.02em}
 .pcsheet .hd .right{margin-left:auto; display:flex; gap:var(--space-sm); align-items:center}
+/* 🔴 손가락으로 누르는 단추다 — 44px 아래로 내리지 않는다 (2026-09-17 우람님) */
 .pcsheet .hd .x{
-  font-size:var(--font-2xl); color:var(--color-text-muted); line-height:1;
-  background:none; border:none; cursor:pointer; font-family:inherit;
+  width:44px; height:44px; flex-shrink:0; border-radius:var(--radius-md);
+  font-size:26px; color:var(--color-text-sub); line-height:1;
+  background:var(--color-seg-bg); border:none; cursor:pointer; font-family:inherit;
+  display:flex; align-items:center; justify-content:center;
 }
-.pcsheet .bd{padding:var(--space-lg) var(--space-2xl) var(--space-2xl); display:flex; flex-direction:column; gap:var(--space-lg)}
+.pcsheet .hd .x:hover{background:var(--color-btn-bg-hover); color:var(--color-text)}
+.pcsheet .bd{padding:var(--space-lg) var(--space-2xl) 0; display:flex; flex-direction:column; gap:var(--space-lg)}
+/* 수정 시트 격자 — 짧은 칸은 두 칸씩 나란히 (2026-09-17) */
+.pcsheet .fgrid.sheetgrid{grid-template-columns:repeat(2, 1fr); gap:var(--space-lg)}
+.pcsheet .fgrid.sheetgrid .s4{grid-column:1 / -1}
 .pcsheet .pair{display:flex; gap:var(--gap-ph-pair)}
 .pcsheet .pair .field{flex:1; min-width:0}
-.pcsheet .btnrow{display:flex; gap:var(--space-sm); justify-content:flex-end; margin-top:var(--space-sm)}
+/* 🔴 스크롤을 내려도 단추가 안 보였다 (2026-09-17 우람님) — 바닥에 붙박는다.
+   폰 홈바에 가리지 않도록 safe-area 만큼 아래 여백을 더한다 */
+.pcsheet .btnrow{
+  display:flex; gap:var(--space-sm); justify-content:flex-end; position:sticky; bottom:0;
+  background:var(--color-bg); z-index:2; margin:0 calc(var(--space-2xl) * -1);
+  padding:var(--space-md) var(--space-2xl) calc(var(--space-lg) + env(safe-area-inset-bottom));
+  border-top:var(--border-width) solid var(--color-border-faint);
+}
 .pcsheet .btnrow .spacer{flex:1}
 
 /* ── 폰 ── */
@@ -291,8 +305,16 @@ table.items .xbtn{
   .fgrid{grid-template-columns:1fr}
   .fgrid .s2, .fgrid .s4{grid-column:auto}
   .stat{flex-wrap:wrap}
-  .pcsheet{top:0; left:0; transform:none; width:100vw; max-height:100vh; height:100vh; border-radius:0}
+  .pcsheet{top:0; left:0; transform:none; width:100vw; max-height:100dvh; height:100dvh; border-radius:0}
   .pcsheet .pair{flex-wrap:wrap}
+  /* 🔴 열두 칸이 한 화면에 들어와야 한다 — 칸 사이와 라벨을 줄인다. 글씨 자체는 안 줄인다 */
+  .pcsheet .hd{padding:var(--space-sm) var(--space-lg)}
+  .pcsheet .bd{padding:var(--space-md) var(--space-lg) 0; gap:var(--space-md)}
+  .pcsheet .fgrid.sheetgrid{gap:var(--space-sm) var(--space-md)}
+  .pcsheet .field{gap:2px}
+  .pcsheet .btnrow{margin:0 calc(var(--space-lg) * -1); padding:var(--space-sm) var(--space-lg) calc(var(--space-sm) + env(safe-area-inset-bottom))}
+  .pcsheet .selfbox{padding:var(--space-sm) var(--space-lg); gap:var(--space-sm)}
+  .pcsheet .selfbox span{display:none}
 }
 
 /* ══ 인쇄 — 종이에는 .doc 만 남긴다 (설계 §5) ══

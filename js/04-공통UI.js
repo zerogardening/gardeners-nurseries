@@ -614,13 +614,108 @@ window.ZG = window.ZG || {};
     return { 닫기: 닫기 };
   }
 
+  /* ── 업체 자동완성 ──
+     후보는 업체 관리에 등록된 곳이다. 🔴 목록에 없는 이름도 그냥 칠 수 있어야 해서
+     고르기를 강요하지 않는다 — 안 고르면 친 글자가 그대로 값이다.
+     품목용 자동완성()은 후보찾기(품목)에 묶여 있어 여기 못 쓴다. 목록 모양(.ac)만 같이 쓴다. */
+  function 업체자동완성(설정) {
+    var 입력 = 설정.입력, 담을곳 = 설정.담을곳;
+    var 목록 = [], 고른칸 = -1, 상자 = null, 감시 = null;
+    var 앞세울 = 설정.앞구분 || '';
+
+    function 닫기() {
+      if (감시) 감시.취소();      // 예약된 타자 타이머가 뒤늦게 터져 목록이 다시 뜨는 것을 막는다
+      if (상자 && 상자.parentNode) 상자.parentNode.removeChild(상자);
+      상자 = null; 고른칸 = -1;
+      입력.setAttribute('aria-expanded', 'false');
+    }
+
+    function 업체들() {
+      if (ZG.업체자료) return ZG.업체자료.목록();
+      return ZG.저장소.읽기(ZG.저장소.키.업체);   // 업체자료가 안 실린 화면(상품)에서도 돈다
+    }
+
+    function 찾기(글) {
+      var q = String(글 || '').trim().toLowerCase();
+      var 것들 = 업체들().filter(function (c) { return c && c.이름; });
+      if (q) {
+        것들 = 것들.filter(function (c) {
+          return [c.이름, c.대표, c.담당자].some(function (s) {
+            return String(s || '').toLowerCase().indexOf(q) >= 0;
+          });
+        });
+      }
+      것들.sort(function (a, b) {
+        if (앞세울) {
+          var x = a.구분 === 앞세울 ? 0 : 1, y = b.구분 === 앞세울 ? 0 : 1;
+          if (x !== y) return x - y;
+        }
+        if (q) {   // 한 글자만 쳐도 뜬다 — 이름 첫 글자부터 맞은 곳을 앞에 세운다
+          var i = String(a.이름).toLowerCase().indexOf(q), j = String(b.이름).toLowerCase().indexOf(q);
+          if (i < 0) i = 50; if (j < 0) j = 50;
+          if (i !== j) return i - j;
+        }
+        return String(a.이름).localeCompare(String(b.이름), 'ko');
+      });
+      return 것들.slice(0, 8);
+    }
+
+    function 표시() {
+      var 줄들 = 상자 ? 상자.querySelectorAll('.it') : [];
+      Array.prototype.forEach.call(줄들, function (줄, i) {
+        줄.classList.toggle('on', i === 고른칸);
+        줄.setAttribute('aria-selected', i === 고른칸 ? 'true' : 'false');
+      });
+    }
+
+    function 고르기실행(c) { 닫기(); 설정.고름(c); }
+
+    function 그리기() {
+      닫기();
+      if (!목록.length) return;
+      상자 = 만들기('div', { class: 'ac', role: 'listbox' });
+      상자.appendChild(만들기('div', { class: 'hd', text: '업체 관리에 등록된 곳 ' + 목록.length + '곳' }));
+      목록.forEach(function (c, i) {
+        var 아래 = [c.구분, c.대표, c.전화].filter(Boolean).join(' · ');
+        var 줄 = 만들기('button', { type: 'button', class: 'it', role: 'option', 'aria-selected': 'false' }, [
+          만들기('div', {}, [만들기('div', { class: 'nm', text: c.이름 }), 만들기('div', { class: 'sub', text: 아래 })])
+        ]);
+        줄.addEventListener('mousedown', function (e) { e.preventDefault(); });
+        줄.addEventListener('click', function () { 고르기실행(c); });
+        줄.addEventListener('mousemove', function () { 고른칸 = i; 표시(); });
+        상자.appendChild(줄);
+      });
+      담을곳.appendChild(상자);
+      입력.setAttribute('aria-expanded', 'true');
+    }
+
+    입력.setAttribute('role', 'combobox');
+    입력.setAttribute('aria-expanded', 'false');
+    입력.setAttribute('autocomplete', 'off');
+
+    감시 = 조합안전입력(입력, function (값) { 목록 = 찾기(값); 고른칸 = -1; 그리기(); }, 200);
+    입력.addEventListener('focus', function () { 목록 = 찾기(입력.value); 고른칸 = -1; 그리기(); });
+    입력.addEventListener('keydown', function (e) {
+      if (e.isComposing || e.keyCode === 229) return;
+      if (!상자) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); 고른칸 = Math.min(고른칸 + 1, 목록.length - 1); 표시(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); 고른칸 = Math.max(고른칸 - 1, 0); 표시(); }
+      else if (e.key === 'Enter') { if (고른칸 >= 0) { e.preventDefault(); 고르기실행(목록[고른칸]); } }
+      else if (e.key === 'Escape') { e.preventDefault(); 닫기(); }
+      else if (e.key === 'Tab') { 닫기(); }
+    });
+    입력.addEventListener('blur', function () { setTimeout(닫기, 150); });
+
+    return { 닫기: 닫기 };
+  }
+
   ZG.ui = {
     만들기: 만들기, 비우기: 비우기, 안전: 안전,
     콤마: 콤마, 숫자: 숫자, 오늘문자: 오늘문자,
     폰인가: 폰인가, 폰질의: 폰질의, 움직임끔: 움직임끔, PC보기: PC보기, PC보기인가: PC보기인가,
     토스트: 토스트, 확인: 확인, 물음: 물음, 고르기: 고르기, 더보기시트: 더보기시트, 탭바: 탭바, 옆메뉴: 옆메뉴, 아이콘: 아이콘, 햅틱: 햅틱, 손대야열림: 손대야열림, 흔들기: 흔들기, 목록등장: 목록등장, 번쩍: 번쩍,
     탈출걸기: 탈출걸기, 탈출풀기: 탈출풀기,
-    스테퍼: 스테퍼, 자동완성: 자동완성, 후보찾기: 후보찾기,
+    스테퍼: 스테퍼, 자동완성: 자동완성, 후보찾기: 후보찾기, 업체자동완성: 업체자동완성,
     조합안전입력: 조합안전입력
   };
 })(window.ZG);

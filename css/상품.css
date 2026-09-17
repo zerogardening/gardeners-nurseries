@@ -231,16 +231,14 @@ td.뺌칸{text-align:right}
   font-size:var(--font-xs); color:var(--color-text-muted); font-weight:var(--weight-semibold);
 }
 
-/* 업체 찾기 — 쳐서 고른다(자동완성). 칩 줄이던 것을 2026-09-14 에 바꿨다 */
-.업체줄{ display:flex; align-items:center; gap:var(--space-sm); padding:0 var(--space-sm) }
-.업체줄 .업체찾기{ flex:1; min-width:0 }
-.업체줄 .업체지움{
-  flex:none; width:var(--h-btn); height:var(--h-btn); padding:0;
-  border:1px solid var(--color-border); border-radius:var(--radius-pill);
-  background:var(--color-surface); color:var(--color-text-muted);
-  font-size:var(--font-lg); line-height:1; cursor:pointer;
+/* 입고업체 거르기 — 상단 필터 줄의 드롭다운 (2026-09-17) */
+.fchips .업체고르개{
+  margin-left:var(--space-xs); max-width:190px; height:var(--h-btn-sm);
+  font-size:var(--font-sm); font-weight:var(--weight-semibold); line-height:1;
+  padding:0 28px 0 var(--space-md); border-radius:var(--radius-pill);
+  background-position:right 9px center;
 }
-.업체줄 .업체지움:hover{ background:var(--color-btn-bg-hover); color:var(--color-text) }
+.fchips .업체고르개.on{border-color:var(--color-accent); color:var(--color-accent-dark); font-weight:var(--weight-semibold)}
 
 /* 기간 고르는 창 */
 .기간덮개{

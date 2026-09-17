@@ -549,6 +549,10 @@ td.zero{color:var(--color-danger); font-weight:var(--weight-bold)}
   width:62px; flex-shrink:0;
 }
 .ac .it .nm{font-size:var(--font-md); font-weight:var(--weight-semibold)}
+.ac .it .sub{font-size:var(--font-xs); color:var(--color-text-muted); margin-top:1px}
+/* 칸 바로 아래에 띄우는 자동완성 — 뒤 내용을 밀지 않는다 (입고업체 칸 등) */
+.acwrap{position:relative}
+.acwrap > .ac{position:absolute; top:100%; left:0; right:0; z-index:40; margin-top:4px}
 .ac .it .sci{font-size:var(--font-xs); font-style:italic; color:var(--color-text-sub); margin-top:1px}
 .ac .it .rg{margin-left:auto; text-align:right; font-size:var(--font-2xs); color:var(--color-text-muted); font-weight:var(--weight-medium); line-height:1.5; white-space:nowrap}
 .ac .new{

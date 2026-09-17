@@ -179,12 +179,15 @@ window.ZG = window.ZG || {};
     var 닫기단추 = 만들기('button', { class: 'x', type: 'button', text: '×', 'aria-label': '닫기' });
     닫기단추.addEventListener('click', 닫기);
 
-    var 격자 = 만들기('div', { class: 'fgrid', style: u.폰인가() ? null : 'grid-template-columns:repeat(2,1fr)' });
+    /* 🔴 폰에서도 2칸이다 (2026-09-17 우람님 「한 화면에 다 보이게」).
+       한 칸씩 세로로 쌓으면 열두 칸이 두 화면을 넘어가 아래 단추가 안 보였다.
+       긴 것(업체명·주소·취급품목·메모)만 한 줄을 다 쓴다. */
+    var 통칸 = { 이름: 1, 주소: 1, 취급품목: 1, 메모: 1 };
+    var 격자 = 만들기('div', { class: 'fgrid sheetgrid' });
     목.차례.forEach(function (k) {
       var 밭 = 목.밭[k];
-      if (밭.classList.contains('s2') || 밭.classList.contains('s4')) {
-        밭.classList.remove('s2'); 밭.classList.add('s4');
-      }
+      밭.classList.remove('s2'); 밭.classList.remove('s4');
+      if (통칸[k]) 밭.classList.add('s4');
       격자.appendChild(밭);
     });
     격자.appendChild(만들기('div', { class: 's4' }, [자사줄(값, function (v) { 값.내업체 = v; })]));
