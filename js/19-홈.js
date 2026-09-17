@@ -745,8 +745,9 @@ window.ZG = window.ZG || {};
     if (!목록칸) { 다시그리기(); return; }
     /* 🔴 굴러가는 것은 **창**이다. 피드는 제 굴림칸이 아니다(메모.css 참조) —
        그래서 바닥인지도 창으로 잰다. 옛 글을 읽는 중이면 끌어내리지 않는다 */
-    var 바닥가까이 = 바닥으로 === true || !피드칸 ||
-      (피드칸.scrollHeight - 피드칸.scrollTop - 피드칸.clientHeight < 80);
+    /* 굴러가는 것은 창이다 — 바닥인지도 창으로 잰다 */
+    var 바닥가까이 = 바닥으로 === true ||
+      (document.documentElement.scrollHeight - window.scrollY - window.innerHeight < 120);
 
     if (탭 === '채팅') {
       var 띠칸 = 뿌리.querySelector('.notice-자리');
@@ -838,39 +839,32 @@ window.ZG = window.ZG || {};
         재는 것을 통째로 걷는다. 페이지가 그냥 굴러가게 두면
         **아이폰이 알아서 입력칸을 키보드 위로 올려 준다** — 우리가 계산할 일이 없다.
         대신 입력줄이 키보드에서 조금 뜰 수 있다. 날아다니는 것보다 낫다. */
-  /* 피드 칸을 맨 아래로. 한 번 더 미루어 부르는 것은 접히거나 펴진 뒤 높이가 달라지기 때문이다 */
+  /* 맨 아래로. 굴러가는 것은 **창**이다 — 피드는 제 굴림칸이 아니다(메모.css 참조).
+
+     🔴🔴 키보드가 올라와 있으면 **아무것도 하지 않는다.** 이것이 「보내면 화면이 날아가던」 것의 뿌리였다.
+        키보드가 뜨면 아이폰이 입력칸이 보이도록 스스로 자리를 잡아 준다.
+        그 상태에서 우리가 「문서 맨 아래로」 굴리면, 그 맨 아래는
+        아이폰이 굴릴 자리로 깔아 둔 빈 여백(padding-bottom:55vh)의 끝이다 —
+        화면이 그만큼 위로 솟아 입력줄만 꼭대기에 남는다. 우람님이 본 그 모양이다.
+        키보드가 없을 때만 내린다. 있을 때는 아이폰에 맡긴다. */
   function 바닥으로내리기() {
-    function 내리기() { if (피드칸) 피드칸.scrollTop = 피드칸.scrollHeight; }
+    if (껍데기 && 껍데기.classList.contains('키보드')) return;
+    function 내리기() { window.scrollTo(0, document.documentElement.scrollHeight); }
     내리기();
     setTimeout(내리기, 60);
+    setTimeout(내리기, 220);
   }
 
-  /* ── 키보드가 덮은 만큼 껍데기를 줄인다 ──
-     🔴 이 값이 틀려도 화면은 안 무너진다 — 메모.css 의 min-height:320px 가
-        인라인 height 를 이겨 대화 칸이 0 이 되는 것을 막는다. 그게 마지막 문이다.
-     🔴 껍데기가 position:fixed 라 문서에 높이가 없다 = 페이지가 안 굴러간다.
-        그래서 아이폰이 화면을 밀어 올릴 수도 없다. 날아다니던 것이 여기서 끝난다.
-     🔴 resize 만 듣는다. scroll 은 굴릴 때마다 떠서 화면이 잘게 튄다. */
-  var 보임칸 = window.visualViewport || null;
-  function 높이맞춤() {
-    if (!껍데기 || !보임칸) return;
-    껍데기.style.height = Math.round(보임칸.height) + 'px';
-  }
-
+  /* 🔴 키보드 높이를 재지 않는다. 껍데기에 손도 대지 않는다.
+     위쪽을 접는 결(class)만 붙였다 뗀다 — 나머지는 아이폰이 알아서 굴려 준다.
+     굴릴 자리는 메모.css 의 padding-bottom:55vh 가 만들어 준다. */
   function 키보드(켬) {
     if (!껍데기) return;
     if (!!켬 === 껍데기.classList.contains('키보드')) return;
     껍데기.classList.toggle('키보드', !!켬);
-    if (켬) {
-      if (보임칸) 보임칸.addEventListener('resize', 높이맞춤);
-      높이맞춤();
-      setTimeout(높이맞춤, 120);   // 키보드가 다 올라온 뒤 한 번 더
-      setTimeout(높이맞춤, 400);
-    } else {
-      if (보임칸) 보임칸.removeEventListener('resize', 높이맞춤);
-      껍데기.style.height = '';    // dvh 로 되돌린다
-    }
-    setTimeout(바닥으로내리기, 160);   // 접히거나 펴진 뒤 마지막 말이 보이게
+    // 🔴 올라올 때는 굴리지 않는다 — 아이폰이 잡아 준 자리를 망가뜨린다(위 주석).
+    //    내려간 뒤에만 마지막 말이 보이게 다시 내린다
+    if (!켬) setTimeout(바닥으로내리기, 200);
   }
 
   function 다시그리기() {
