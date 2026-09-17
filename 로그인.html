@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>정원사의 널서리 통합관리</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F4BF6B">
+<link rel="icon" href="icons/icon-192.png?v=1">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=1">
+
+<link rel="stylesheet" href="css/공통.css?v=1">
+<style>
+  /* 이 화면에만 쓰는 모양새 — 안쪽 화면과 짜임이 아주 다르다 */
+  body{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px}
+  .문{width:100%; max-width:420px}
+  .패{
+    background:var(--color-surface); padding:30px 28px 26px;
+    border:var(--border-width) solid #E0CFAE;
+    border-radius:22px 15px 23px 14px / 14px 23px 13px 22px;
+    box-shadow:0 3px 0 rgba(140,116,90,.12);
+  }
+  .로고{display:block; width:190px; max-width:70%; margin:0 auto 4px; mix-blend-mode:multiply}
+  .곳{text-align:center; font-size:var(--font-xs); color:var(--color-text-muted); margin-bottom:22px}
+  .칸{display:block; margin-bottom:13px}
+  .칸 > span{display:block; font-size:var(--font-sm); font-weight:700; color:#7A6660; margin-bottom:5px}
+  .줄{display:flex; gap:9px; margin-top:18px}
+  .줄 .btn{flex:1}
+  .글{
+    margin-top:14px; padding:11px 13px; border-radius:var(--radius-md);
+    font-size:var(--font-sm); line-height:1.6; display:none;
+  }
+  .글.보임{display:block}
+  .글.탈{background:var(--color-danger-bg); color:var(--color-danger); border:var(--border-width) solid var(--color-danger-border)}
+  .글.알{background:var(--color-accent-bg); color:var(--color-accent-dark); border:var(--border-width) solid var(--color-accent-border)}
+  .바꾸기{
+    margin-top:16px; text-align:center; font-size:var(--font-sm); color:var(--color-text-muted);
+  }
+  .바꾸기 button{
+    background:none; border:none; font:inherit; font-weight:700; cursor:pointer;
+    color:var(--color-accent-dark); text-decoration:underline; padding:2px 4px;
+  }
+  .사람{display:block; width:100%; max-width:300px; margin:18px auto 0; mix-blend-mode:multiply; opacity:.95}
+  .숨김{display:none}
+</style>
+</head>
+<body>
+
+<div class="문">
+  <div class="패">
+    <img class="로고" src="img/브랜드/로고-먹색.png" alt="정원사의 널서리">
+    <div class="곳">충북 진천군 이월면 · 통합관리</div>
+
+    <!-- ── 로그인 ── -->
+    <form id="로그인폼">
+      <label class="칸"><span>이메일</span>
+        <input class="inp" id="로그인아이디" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" required></label>
+      <label class="칸"><span>비밀번호</span>
+        <input class="inp" id="로그인비번" type="password" autocomplete="current-password" required></label>
+      <div class="줄"><button class="btn main" type="submit">로그인</button></div>
+    </form>
+
+    <!-- ── 회원가입 ── 이름 · 직책 · 이메일 · 비밀번호 넷뿐이다 (2026-09-17 우람님) -->
+    <form id="가입폼" class="숨김">
+      <label class="칸"><span>이름</span>
+        <input class="inp" id="가입이름" autocomplete="name" required></label>
+      <label class="칸"><span>직책</span>
+        <input class="inp" id="가입직책" autocomplete="organization-title" required></label>
+      <label class="칸"><span>이메일</span>
+        <input class="inp" id="가입아이디" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" required></label>
+      <label class="칸"><span>비밀번호</span>
+        <input class="inp" id="가입비번" type="password" autocomplete="new-password" minlength="6" required></label>
+      <div class="줄"><button class="btn main" type="submit">가입하기</button></div>
+    </form>
+
+    <div class="글" id="말"></div>
+
+    <div class="바꾸기">
+      <span id="안내">처음이신가요?</span>
+      <button type="button" id="바꿈">회원가입</button>
+    </div>
+  </div>
+  <img class="사람" src="img/브랜드/캐리커쳐4인.png" alt="">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/01a-설정.js?v=1"></script>
+<script>
+'use strict';
+(function () {
+  var 설정 = window.ZG.설정;
+  var 로그인폼 = document.getElementById('로그인폼');
+  var 가입폼 = document.getElementById('가입폼');
+  var 말 = document.getElementById('말');
+  var 바꿈 = document.getElementById('바꿈');
+  var 안내 = document.getElementById('안내');
+  var 가입중 = false;
+
+  function 알림(글, 탈) {
+    말.textContent = 글;
+    말.className = '글 보임 ' + (탈 ? '탈' : '알');
+  }
+  function 지움() { 말.className = '글'; }
+
+  /* 로그인 뒤 돌아갈 곳. 다른 사이트로는 안 보낸다 */
+  function 갈곳() {
+    var m = /[?&]from=([^&]+)/.exec(location.search);
+    if (m) {
+      try {
+        var u = new URL(decodeURIComponent(m[1]), location.href);
+        if (u.origin === location.origin) return u.href;
+      } catch (e) {}
+    }
+    return 'index.html';
+  }
+
+  바꿈.addEventListener('click', function () {
+    가입중 = !가입중;
+    지움();
+    로그인폼.classList.toggle('숨김', 가입중);
+    가입폼.classList.toggle('숨김', !가입중);
+    안내.textContent = 가입중 ? '이미 계정이 있으신가요?' : '처음이신가요?';
+    바꿈.textContent = 가입중 ? '로그인' : '회원가입';
+  });
+
+  /* 🔴 서버가 아직 없다. 화면과 흐름만 있고 실제 가입·로그인은 주소·열쇠를 넣은 뒤다
+     (js/01a-설정.js 두 줄) */
+  if (!설정.켜짐) {
+    알림('서버를 아직 연결하지 않았습니다. 지금은 이 기기 안에서만 돌아갑니다.', false);
+    var 들어가기 = document.createElement('button');
+    들어가기.className = 'btn';
+    들어가기.type = 'button';
+    들어가기.textContent = '그냥 들어가기';
+    들어가기.style.cssText = 'width:100%; margin-top:12px';
+    들어가기.addEventListener('click', function () { location.href = 갈곳(); });
+    말.parentNode.insertBefore(들어가기, 말.nextSibling);
+  }
+
+  function 손() {
+    if (!설정.켜짐) { 알림('서버를 아직 연결하지 않았습니다.', true); return null; }
+    if (!window.supabase || !window.supabase.createClient) { 알림('인터넷이 끊겼습니다. 잠시 뒤 다시 해주세요.', true); return null; }
+    return window.supabase.createClient(설정.서버주소, 설정.공개키, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
+  }
+
+  로그인폼.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var s = 손(); if (!s) return;
+    var 아이디 = document.getElementById('로그인아이디').value.trim();
+    if (!아이디) { 알림('이메일을 넣어주세요', true); return; }
+    알림('들어가는 중…', false);
+    s.auth.signInWithPassword({ email: 아이디.toLowerCase(), password: document.getElementById('로그인비번').value })
+      .then(function (r) {
+        if (r.error) { 알림('이메일이나 비밀번호가 맞지 않습니다', true); return; }
+        location.replace(갈곳());
+      });
+  });
+
+  가입폼.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var s = 손(); if (!s) return;
+    var 이름 = document.getElementById('가입이름').value.trim();
+    var 직책 = document.getElementById('가입직책').value.trim();
+    var 아이디 = document.getElementById('가입아이디').value.trim();
+    var 비번 = document.getElementById('가입비번').value;
+    if (!이름 || !직책 || !아이디) { 알림('빈칸을 채워주세요', true); return; }
+    if (!/^[^\s@]+@[^\s@.]+\.[^\s@]+$/.test(아이디)) { 알림('이메일 주소를 확인해 주세요', true); return; }
+    if (비번.length < 6) { 알림('비밀번호는 6자 이상입니다', true); return; }
+
+    알림('가입하는 중…', false);
+    /* 🔴 이름·직책은 user_metadata 로 넣는다. 사람 표를 따로 만들지 않는다 */
+    s.auth.signUp({
+      email: 아이디.toLowerCase(),
+      password: 비번,
+      options: { data: { 이름: 이름, 직책: 직책 } }
+    }).then(function (r) {
+      if (r.error) {
+        알림(/registered|exists/i.test(r.error.message || '') ? '이미 가입된 이메일입니다' : '가입하지 못했습니다 — ' + r.error.message, true);
+        return;
+      }
+      /* 나중에 「이름을 넣으면 뜨는 이벤트 팝업」이 붙을 자리 (우람님 「나중에」) */
+      if (r.data && r.data.session) { location.replace(갈곳()); return; }
+      알림('가입했습니다. 이제 로그인해 주세요.', false);
+      바꿈.click();
+    });
+  });
+})();
+</script>
+</body>
+</html>

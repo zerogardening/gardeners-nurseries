@@ -1,0 +1,351 @@
+/* ══════════════════════════════════════════════════════════════
+   업체 관리 (명세서 서브탭 포함) — 시안 03-업체관리-macA.html 의
+   「이 화면에서만 쓰는 것」을 그대로 옮겼다. 공통.css 에 있는 부품은 다시 만들지 않는다.
+   ══════════════════════════════════════════════════════════════ */
+
+/* 시안 _공통-macA.css 에는 있는데 css/공통.css 에 아직 안 옮겨진 것 (통계 4칸) */
+.stat{display:flex; gap:var(--space-lg)}
+.stat > div{
+  flex:1; background:var(--color-surface); border-radius:var(--radius-lg); padding:var(--pad-stat);
+  box-shadow:var(--shadow-card); min-width:0;
+}
+.stat .k{font-size:var(--font-xs); color:var(--color-text-muted); font-weight:var(--weight-semibold)}
+.stat .v{
+  font-size:var(--font-5xl); font-weight:var(--weight-bold); color:var(--color-accent-dark); margin-top:var(--space-4xs);
+  font-variant-numeric:tabular-nums; letter-spacing:-.02em; line-height:1.15;
+}
+
+/* 드롭다운 — .inp 위에 화살표만 얹는다 */
+select.inp{
+  appearance:none; -webkit-appearance:none; padding-right:30px; cursor:pointer;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'><path d='M1 1.5l4 4 4-4' stroke='%2386868B' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat:no-repeat; background-position:right 11px center;
+}
+select.inp.sm{height:34px; font-size:var(--font-md)}
+.inp.ta{height:auto; padding:10px 12px; line-height:1.55; font-size:var(--font-md); resize:none}
+
+/* 검색줄 */
+.sbar{display:flex; gap:var(--space-sm); align-items:center; flex-wrap:wrap}
+.sbar .grow{flex:1; min-width:200px}
+
+/* 등록 폼 격자 */
+.fgrid{display:grid; grid-template-columns:repeat(4, 1fr); gap:var(--space-xl)}
+.fgrid .s2{grid-column:span 2}
+.fgrid .s4{grid-column:1 / -1}
+.formfoot{display:flex; gap:var(--space-sm); justify-content:flex-end; margin-top:var(--space-3xl)}
+
+/* 자사 지정 체크박스 줄 */
+.selfbox{
+  display:flex; align-items:center; gap:var(--space-md); flex-wrap:wrap;
+  background:var(--color-accent-bg); border:var(--border-width) dashed var(--color-accent-border);
+  border-radius:var(--radius-md); padding:var(--space-lg) var(--space-2xl); cursor:pointer;
+  font-family:inherit; text-align:left; width:100%; color:inherit;
+}
+.selfbox i{
+  width:19px; height:19px; border-radius:5px; flex-shrink:0;
+  background:var(--color-accent); border:var(--border-width) solid var(--color-accent-dark);
+  color:var(--color-on-accent); font-style:normal; font-size:13px; font-weight:var(--weight-bold);
+  display:flex; align-items:center; justify-content:center; line-height:1;
+}
+.selfbox i.off{background:var(--color-surface); border-color:var(--color-border); color:transparent}
+.selfbox b{font-size:var(--font-md); font-weight:var(--weight-bold)}
+.selfbox span{font-size:var(--font-xs); color:var(--color-text-muted); font-weight:var(--weight-medium)}
+
+/* 2단 탭 (명세서 안의 작성 / 발행 이력) */
+.subtabs{
+  display:inline-flex; gap:var(--space-4xs); background:var(--color-seg-bg);
+  padding:var(--space-4xs); border-radius:var(--radius-md); align-self:flex-start;
+}
+.subtabs button{
+  padding:var(--space-2xs) var(--space-3xl); border-radius:var(--radius-sm); border:none; background:none;
+  font-family:inherit; font-size:var(--font-xs); font-weight:var(--weight-semibold);
+  color:var(--color-text-sub); cursor:pointer;
+}
+.subtabs button.on{background:var(--color-surface); color:var(--color-accent-dark); box-shadow:var(--shadow-seg)}
+
+/* ══ 명세서 문서 — 인쇄되는 그대로 ══ */
+.stbar{
+  display:flex; align-items:center; gap:var(--space-lg); flex-wrap:wrap;
+  background:var(--color-surface); border-radius:var(--radius-lg);
+  padding:var(--space-lg) var(--space-2xl); box-shadow:var(--shadow-card);
+}
+.stbar .hint{font-size:var(--font-xs); color:var(--color-text-muted); font-weight:var(--weight-medium)}
+.stbar .sp{flex:1}
+
+.doc{
+  background:var(--color-surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-card);
+  padding:38px 42px 34px; font-size:var(--font-sm); color:var(--color-text); line-height:1.6;
+}
+.doc .dhead{
+  display:flex; justify-content:space-between; align-items:flex-end;
+  padding-bottom:var(--space-3xl); margin-bottom:var(--space-4xl);
+  border-bottom:var(--border-width-thick) solid var(--color-text);
+}
+.doc .dhead h1{font-size:32px; font-weight:var(--weight-bold); letter-spacing:-.03em; line-height:1}
+.doc .dmeta{font-size:var(--font-2xs); color:var(--color-text-muted); text-align:right; line-height:1.9; letter-spacing:.05em; font-weight:var(--weight-semibold)}
+.doc .dmeta .no{font-family:var(--font-mono); font-size:var(--font-xs); color:var(--color-text); letter-spacing:0}
+
+.parties{display:grid; grid-template-columns:1fr 1fr; gap:42px; margin-bottom:var(--space-4xl)}
+.party{
+  border-top:var(--border-width-thick) solid var(--color-text); padding-top:var(--space-2xl);
+  /* 한 줄에 한 칸 — 2열이면 전화·사업자번호가 잘리거나 두 줄로 접힌다 */
+  display:grid; grid-template-columns:66px 1fr; column-gap:var(--space-xl); row-gap:var(--space-md);
+}
+.party .ptitle{
+  grid-column:1/-1; font-size:var(--font-sm); font-weight:var(--weight-bold);
+  letter-spacing:.06em; padding-bottom:var(--space-xs);
+}
+.party .ptitle em{font-style:normal; font-size:var(--font-3xs); font-weight:var(--weight-medium); color:var(--color-text-muted); letter-spacing:0; margin-left:var(--space-xs)}
+.party .k{font-size:var(--font-3xs); color:var(--color-text-hint); letter-spacing:.05em; font-weight:var(--weight-semibold); display:flex; align-items:center}
+.party .v{font-size:var(--font-sm); font-weight:var(--weight-semibold); display:flex; align-items:center; min-width:0; word-break:keep-all}
+.party .v input{
+  width:100%; font-family:inherit; font-size:var(--font-sm); font-weight:var(--weight-semibold); color:var(--color-text);
+  border:none; border-bottom:var(--border-width) solid var(--color-border-faint);
+  background:transparent; padding:2px 0; border-radius:0;
+}
+.party .v input:focus{outline:none; border-bottom-color:var(--color-accent)}
+.party .v .acwrap{position:relative; width:100%}
+.party.self .v{color:var(--color-text-sub)}
+.party.self .v.warn{color:var(--color-danger); font-size:var(--font-xs)}
+
+.dmetarow{
+  display:flex; gap:var(--space-4xl); align-items:center; flex-wrap:wrap;
+  padding:var(--space-lg) 0; margin-bottom:var(--space-3xl);
+  border-top:var(--border-width) solid var(--color-border-faint);
+  border-bottom:var(--border-width) solid var(--color-border-faint);
+  font-size:var(--font-xs); color:var(--color-text-sub); font-weight:var(--weight-semibold);
+}
+.dmetarow label{display:flex; align-items:center; gap:var(--space-sm)}
+.dmetarow .k{font-size:var(--font-3xs); color:var(--color-text-hint); letter-spacing:.05em}
+.dmetarow .dt{
+  font-family:var(--font-mono); font-size:var(--font-sm); color:var(--color-text);
+  border:none; border-bottom:var(--border-width) solid var(--color-border); padding:2px 0;
+  background:transparent;
+}
+.tool{
+  display:flex; align-items:center; gap:var(--space-xs);
+  background:var(--color-bg); border:var(--border-width) solid var(--color-border);
+  border-radius:var(--radius-sm); padding:var(--space-3xs) var(--space-md); white-space:nowrap;
+}
+.tool select.inp{height:26px; font-size:var(--font-xs); padding:0 24px 0 8px; background-position:right 7px center}
+.tool .pct{
+  width:52px; height:26px; text-align:right; font-family:inherit; font-size:var(--font-xs);
+  border:var(--border-width) solid var(--color-border); border-radius:var(--radius-sm);
+  background:var(--color-surface); padding:0 7px;
+}
+.tool .why{font-size:var(--font-3xs); color:var(--color-text-muted); font-weight:var(--weight-medium)}
+
+table.items{font-size:var(--font-sm)}
+table.items th{
+  background:transparent; text-align:center; font-size:var(--font-3xs); letter-spacing:.1em;
+  color:var(--color-text-muted); padding:9px 6px;
+  border-top:var(--border-width-thick) solid var(--color-text);
+  border-bottom:var(--border-width-thick) solid var(--color-text); border-radius:0;
+}
+table.items th.l{text-align:left}
+table.items td{padding:10px 6px; text-align:center; border-bottom:var(--border-width) solid var(--color-border-faint)}
+table.items tr:last-child td{border-bottom:var(--border-width) solid var(--color-border-faint)}
+table.items td.n{color:var(--color-text-faint); font-size:var(--font-2xs)}
+table.items td.cd{font-family:var(--font-mono); font-size:var(--font-2xs); color:var(--color-text-muted)}
+table.items td.nm{text-align:left; font-weight:var(--weight-semibold); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+table.items td.sp{font-size:var(--font-xs); color:var(--color-text-sub)}
+table.items td.r{text-align:right; font-variant-numeric:tabular-nums; font-weight:var(--weight-regular)}
+table.items td.r.b{font-weight:var(--weight-semibold)}
+table.items td.dim{color:var(--color-text-sub)}
+table.items td.empty{color:var(--color-text-muted); font-size:var(--font-xs); padding:22px 6px}
+table.items .cellinp{
+  width:100%; border:none; background:transparent; text-align:right; font-family:inherit;
+  font-size:var(--font-sm); font-variant-numeric:tabular-nums; color:var(--color-text); padding:2px 0;
+}
+table.items .cellinp:focus{outline:none; border-bottom:var(--border-width) solid var(--color-accent)}
+table.items .cellinp.txt{text-align:inherit; font-size:inherit; font-weight:inherit; color:inherit; font-variant-numeric:normal}
+table.items .taxsel{
+  border:none; background:transparent; font-family:inherit; font-size:var(--font-sm);
+  color:var(--color-text-faint); padding:0; cursor:pointer;
+}
+table.items .taxamt{font-variant-numeric:tabular-nums; margin-left:6px}
+table.items .onpaper{display:none}
+/* 순서 바꾸기 — NO 칸을 잡아 끈다. 끌리는 자리는 줄 위/아래에 선으로 알린다 */
+table.items td.grip{cursor:grab; user-select:none}
+table.items td.grip:active{cursor:grabbing}
+table.items tbody tr.위로 td{box-shadow:inset 0 2px 0 var(--color-accent)}
+table.items tbody tr.아래로 td{box-shadow:inset 0 -2px 0 var(--color-accent)}
+.colpick{gap:var(--space-md); flex-wrap:wrap; margin-bottom:var(--space-md)}
+.colpick .lb{font-size:var(--font-3xs); color:var(--color-text-hint); letter-spacing:.05em; font-weight:var(--weight-semibold)}
+.colpick label{display:flex; align-items:center; gap:4px; font-size:var(--font-xs); color:var(--color-text-sub); cursor:pointer}
+.colpick input{margin:0; cursor:pointer}
+table.items .xbtn{
+  background:none; border:none; cursor:pointer; font-family:inherit;
+  color:var(--color-text-faint); font-size:var(--font-lg); line-height:1; padding:0;
+}
+
+.addrow{
+  display:flex; gap:var(--space-md); align-items:center; flex-wrap:wrap;
+  background:var(--color-bg); border:var(--border-width) solid var(--color-border-faint);
+  border-radius:var(--radius-md); padding:var(--space-xl) var(--space-2xl); margin:var(--space-3xl) 0;
+}
+.addrow .inp{height:36px; font-size:var(--font-md)}
+.addrow .wide{flex:1; min-width:230px; position:relative}
+
+.totals{
+  display:flex; justify-content:flex-end; align-items:baseline; gap:var(--space-5xl); flex-wrap:wrap;
+  padding:var(--space-md) var(--space-3xs) var(--space-3xl); font-size:var(--font-xs); color:var(--color-text-muted);
+}
+.totals .k{font-size:var(--font-3xs); letter-spacing:.05em; margin-right:var(--space-xs)}
+.totals b{font-size:var(--font-lg); color:var(--color-text); font-variant-numeric:tabular-nums; font-weight:var(--weight-semibold)}
+.totals .grand b{font-size:var(--font-5xl); font-weight:var(--weight-bold); letter-spacing:-.02em}
+
+.dmemo{
+  display:flex; gap:var(--space-2xl); border-top:var(--border-width) solid var(--color-border-faint);
+  padding-top:var(--space-2xl);
+}
+.dmemo .k{font-size:var(--font-3xs); color:var(--color-text-hint); letter-spacing:.05em; font-weight:var(--weight-semibold); padding-top:5px; width:34px; flex-shrink:0}
+.dmemo .v{
+  flex:1; font-size:var(--font-xs); color:var(--color-text-sub); line-height:1.7;
+  border:none; background:transparent; font-family:inherit; resize:vertical; min-height:44px;
+}
+.dmemo .v:focus{outline:none; background:var(--color-bg); border-radius:var(--radius-sm)}
+
+.btn.del{color:var(--color-danger)}
+
+/* 자동완성 목록은 문서 격자를 밀어내면 안 된다 — 칸 아래로 띄운다 */
+.acwrap{position:relative}
+.acwrap .ac{position:absolute; top:100%; left:0; right:0; z-index:30; margin-top:4px; min-width:240px}
+.acwrap .ac .it .sub{font-size:var(--font-xs); color:var(--color-text-muted); margin-top:1px}
+
+/* PC 팝업 창 (업체 수정 시트 · 직접 입력) — 주문.css 와 같은 모양 */
+.pcscrim{position:fixed; inset:0; background:rgba(0,0,0,.34); z-index:60}
+.pcsheet{
+  position:fixed; z-index:61; top:8vh; left:50%; transform:translateX(-50%);
+  width:min(760px, 92vw); max-height:80vh; overflow:auto;
+  background:var(--color-bg); border-radius:var(--radius-lg);
+  box-shadow:0 22px 54px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.07);
+}
+.pcsheet .hd{
+  display:flex; align-items:center; gap:var(--space-sm); background:var(--color-surface);
+  padding:var(--space-lg) var(--space-2xl); border-bottom:var(--border-width) solid var(--color-border);
+  position:sticky; top:0; z-index:1;
+}
+.pcsheet .hd h3{font-size:var(--font-lg); font-weight:var(--weight-bold); letter-spacing:-.02em}
+.pcsheet .hd .right{margin-left:auto; display:flex; gap:var(--space-sm); align-items:center}
+.pcsheet .hd .x{
+  font-size:var(--font-2xl); color:var(--color-text-muted); line-height:1;
+  background:none; border:none; cursor:pointer; font-family:inherit;
+}
+.pcsheet .bd{padding:var(--space-lg) var(--space-2xl) var(--space-2xl); display:flex; flex-direction:column; gap:var(--space-lg)}
+.pcsheet .pair{display:flex; gap:var(--gap-ph-pair)}
+.pcsheet .pair .field{flex:1; min-width:0}
+.pcsheet .btnrow{display:flex; gap:var(--space-sm); justify-content:flex-end; margin-top:var(--space-sm)}
+.pcsheet .btnrow .spacer{flex:1}
+
+/* ── 폰 ── */
+.ph-body .subtabs{align-self:stretch}
+.ph-body .subtabs button{flex:1; text-align:center; padding:var(--space-2xs) var(--space-sm)}
+/* 업체 카드의 「입고 N건」은 금액이 아니다 — 시안처럼 작고 옅게 (명세서 이력의 합계는 그대로 크게) */
+.업체카드 .r2 .amt{font-size:var(--font-sm); font-weight:var(--weight-semibold); color:var(--color-text-muted)}
+.ph-card .type{
+  font-size:var(--font-2xs); color:var(--color-text-sub); font-weight:var(--weight-semibold);
+  background:var(--color-seg-bg); border-radius:var(--radius-pill); padding:var(--pad-tag); margin-left:var(--space-xs);
+}
+.doccard{
+  background:var(--color-surface); border-radius:var(--radius-xl); padding:var(--space-2xl);
+  box-shadow:var(--shadow-card); display:flex; flex-direction:column; gap:var(--space-md);
+}
+.lineitem{
+  display:flex; align-items:center; gap:var(--space-md);
+  padding:var(--space-md) 0; border-bottom:var(--border-width) solid var(--color-border-faint);
+}
+.lineitem:last-child{border-bottom:none}
+.lineitem .t{flex:1; min-width:0}
+.lineitem .t b{display:block; font-size:var(--font-md); font-weight:var(--weight-semibold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.lineitem .t span{font-size:var(--font-2xs); color:var(--color-text-muted); font-family:var(--font-mono)}
+.lineitem .q{font-size:var(--font-xs); color:var(--color-text-muted); white-space:nowrap; font-variant-numeric:tabular-nums}
+.lineitem .a{font-size:var(--font-lg); font-weight:var(--weight-bold); font-variant-numeric:tabular-nums; width:78px; text-align:right}
+.lineitem .xbtn{
+  background:none; border:none; cursor:pointer; font-family:inherit;
+  color:var(--color-text-faint); font-size:var(--font-lg); line-height:1; padding:0 var(--space-3xs);
+}
+.grandline{
+  display:flex; align-items:baseline; justify-content:space-between;
+  padding-top:var(--space-lg); border-top:var(--border-width-thick) solid var(--color-text);
+}
+.grandline .k{font-size:var(--font-sm); color:var(--color-text-muted); font-weight:var(--weight-semibold)}
+.grandline .v{font-size:var(--font-5xl); font-weight:var(--weight-bold); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+.noteline{
+  font-size:var(--font-xs); color:var(--color-text-muted); background:var(--color-bg);
+  border:var(--border-width) dashed var(--color-border); border-radius:var(--radius-md);
+  padding:var(--space-md) var(--space-lg); line-height:1.6;
+}
+.addbtn{
+  height:44px; border-radius:var(--radius-md); background:var(--color-surface);
+  border:var(--border-width) dashed var(--color-border); color:var(--color-accent-dark);
+  font-family:inherit; font-size:var(--font-md); font-weight:var(--weight-semibold); cursor:pointer;
+}
+.empty{
+  padding:34px 16px; text-align:center; color:var(--color-text-muted);
+  font-size:var(--font-md); line-height:1.7;
+}
+
+/* 폰 390px — 가로로 넘치는 것을 막는다 */
+@media screen and (max-width:899px){
+  .fgrid{grid-template-columns:1fr}
+  .fgrid .s2, .fgrid .s4{grid-column:auto}
+  .stat{flex-wrap:wrap}
+  .pcsheet{top:0; left:0; transform:none; width:100vw; max-height:100vh; height:100vh; border-radius:0}
+  .pcsheet .pair{flex-wrap:wrap}
+}
+
+/* ══ 인쇄 — 종이에는 .doc 만 남긴다 (설계 §5) ══
+   인쇄 동안 JS 가 .doc 을 body 직계로 옮겨 둔다(11b-명세서작성.js 인쇄()).
+   그래서 여기서는 body 의 직계 형제만 끄면 된다. */
+@media print{
+  body.명세서인쇄중 > *:not(.doc){display:none !important}
+  body.명세서인쇄중 > .doc{display:block !important}
+  /* 🔴 종이 여백은 @page 가 아니라 .doc 이 갖는다 (우람님 9/2).
+     브라우저는 「26. 9. 2. 오후 2:28 · 파일이름 · 주소 · 1/3」 을 @page 여백 자리에 찍는다.
+     여백을 0 으로 만들면 찍을 자리가 없어져 사라진다 — 인쇄창의 「머리글/바닥글」 체크를
+     끄지 않아도 안 나온다. 대신 여백을 문서가 직접 들고 있어야 한다.
+     📌 좌우 여백은 모든 쪽에 붙지만, 위아래는 첫 쪽·마지막 쪽에만 붙는다(블록 padding 이라서) */
+  @page{margin:0}
+  body.명세서인쇄중 .doc{box-shadow:none; border-radius:0; padding:14mm 12mm}
+  /* 화면에서만 쓰는 것 — 종이에는 안 나간다 */
+  body.명세서인쇄중 .doc .tool,
+  body.명세서인쇄중 .doc .addrow,
+  body.명세서인쇄중 .doc .xcol,
+  body.명세서인쇄중 .doc .빈날짜{display:none !important}
+  body.명세서인쇄중 .doc .dmetarow{border-top:none}
+  /* 종이에 달력 아이콘·textarea 손잡이가 찍히면 안 된다 */
+  body.명세서인쇄중 .doc input::-webkit-calendar-picker-indicator{display:none}
+  /* ── 종이에서만 다른 것 (우람님 9/2) ──
+     ① 과세/면세 드롭다운은 안 나간다 — 세액은 숫자만 찍힌다
+     ② 🔴 표 안의 입력칸을 전부 글자로 바꾼다 — <input> 은 줄바꿈이 안 되고 폭도 안 줄어
+        A4 의 좁은 칸에서 긴 품목명이 잘리고 단가와 공급가액이 서로 겹쳤다 */
+  body.명세서인쇄중 .doc table.items .taxsel,
+  body.명세서인쇄중 .doc table.items .cellinp{display:none !important}
+  /* 🔴 화면용 px 고정폭을 종이에 그대로 쓰면 A4 가 좁아 품목명이 서너 줄로 접힌다.
+     그렇다고 width:auto 로 풀면 안 된다 — 공통.css 가 모든 표에 table-layout:fixed 를
+     걸어 두어, auto 인 칸끼리 남은 자리를 **똑같이** 49px 씩 나눠 갖고 긴 금액이 옆칸을
+     덮어썼다 (우람님 9/2 — 「340,000」 이 「170000」 위에 겹쳤다).
+     → 종이에서는 %로 준다. 품목명만 auto 라 남는 자리를 전부 가져가고,
+       체크를 지워 감춘 칸의 몫도 품목명에게 간다 */
+  body.명세서인쇄중 .doc table.items col.c-NO{width:4% !important}
+  body.명세서인쇄중 .doc table.items col.c-품목코드{width:7% !important}
+  body.명세서인쇄중 .doc table.items col.c-품목명{width:auto !important}
+  body.명세서인쇄중 .doc table.items col.c-규격{width:12% !important}
+  body.명세서인쇄중 .doc table.items col.c-수량{width:5% !important}
+  body.명세서인쇄중 .doc table.items col.c-단가{width:11% !important}
+  body.명세서인쇄중 .doc table.items col.c-공급가액{width:12% !important}
+  body.명세서인쇄중 .doc table.items col.c-세액{width:11% !important}
+  body.명세서인쇄중 .doc table.items col.c-합계{width:12% !important}
+  /* 숫자칸끼리 딱 붙으면 「78,0007,800」 으로 읽힌다 — 사이를 벌린다 */
+  body.명세서인쇄중 .doc table.items th,
+  body.명세서인쇄중 .doc table.items td.r{padding-left:10px; white-space:nowrap}
+  body.명세서인쇄중 .doc table.items .onpaper{display:inline}
+  body.명세서인쇄중 .doc table.items td.nm{white-space:normal; overflow:visible}
+  /* 🔴 규격·품목코드는 한 줄로 — 두 줄로 접히면 줄 높이가 들쭉날쭉해진다 (우람님 9/2).
+     그래도 넘치면 잘라 낸다. 옆칸 숫자를 덮어쓰는 것보다는 낫다 */
+  body.명세서인쇄중 .doc table.items td.sp,
+  body.명세서인쇄중 .doc table.items td.cd{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  body.명세서인쇄중 .doc table.items .taxamt{margin-left:0}
+  body.명세서인쇄중 .dmemo .v{resize:none; overflow:visible}
+}

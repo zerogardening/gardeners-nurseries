@@ -1,0 +1,121 @@
+/* ══════════════════════════════════════════════════════════
+   견적 요청 — 상단탭 없는 한 화면. 전에는 주문 화면 안 탭이었다.
+   공통.css 와 겹치는 이름(.stat 등)도 여기 몫만 둔다
+   ══════════════════════════════════════════════════════════ */
+
+
+/* 드롭다운 — 업체 관리와 같은 모양이지만 그쪽 css 를 주문 화면이 싣지 않는다 */
+select.inp{
+  appearance:none; -webkit-appearance:none; padding-right:30px; cursor:pointer;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'><path d='M1 1.5l4 4 4-4' stroke='%2386868B' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat:no-repeat; background-position:right 11px center;
+}
+select.inp.sm{height:34px; font-size:var(--font-md)}
+.inp.ta{height:auto; padding:10px 12px; line-height:1.6; font-size:var(--font-md); resize:none}
+
+/* 통계 4칸 — 공통.css 에 없어서 여기 둔다 */
+.stat{display:flex; gap:var(--space-lg)}
+.stat > div{
+  flex:1; background:var(--color-surface); border-radius:var(--radius-lg); padding:var(--pad-stat);
+  box-shadow:var(--shadow-card);
+}
+.stat .k{font-size:var(--font-xs); color:var(--color-text-muted); font-weight:var(--weight-semibold)}
+.stat .v{
+  font-size:var(--font-5xl); font-weight:var(--weight-bold); color:var(--color-accent-dark);
+  margin-top:var(--space-4xs); font-variant-numeric:tabular-nums; letter-spacing:-.02em; line-height:1.15;
+}
+
+/* 검색줄 */
+.sbar{display:flex; gap:var(--space-sm); align-items:center; flex-wrap:wrap}
+.sbar .grow{flex:1; min-width:200px}
+
+/* 등록 폼 격자 — 요청일자·고객명·연락처가 한 줄, 내용이 아래 한 줄 */
+.fgrid{display:grid; grid-template-columns:170px 250px 250px 1fr; gap:var(--space-xl)}
+.fgrid .s4{grid-column:1 / -1}
+.formfoot{display:flex; gap:var(--space-sm); justify-content:flex-end; margin-top:var(--space-3xl)}
+
+/* 2단 탭 (업체 관리 · 명세서와 같은 부품) */
+.subtabs{
+  display:inline-flex; gap:var(--space-3xs); background:var(--color-seg-bg);
+  padding:var(--space-4xs); border-radius:var(--radius-md); align-self:stretch;
+}
+.subtabs button{
+  flex:1; text-align:center; padding:var(--space-2xs) var(--space-2xl); border-radius:var(--radius-sm);
+  border:none; background:none; font-family:inherit;
+  font-size:var(--font-xs); font-weight:var(--weight-semibold); color:var(--color-text-sub); cursor:pointer;
+}
+.subtabs button.on{background:var(--color-surface); color:var(--color-accent-dark); box-shadow:var(--shadow-seg)}
+
+/* 상태 칩 — 요청 / 완료 / 취소 셋뿐이다 */
+.st{
+  display:inline-flex; align-items:center; gap:var(--space-3xs);
+  padding:var(--pad-chip); border-radius:var(--radius-badge);
+  font-size:var(--font-2xs); font-weight:var(--weight-bold); white-space:nowrap;
+  border:var(--border-width) solid transparent;
+}
+.st::before{content:''; width:var(--dot-size); height:var(--dot-size); border-radius:50%; background:currentColor}
+.st.wait{background:#FFF7E0; color:#8A6100; border-color:#F0DFAE}
+.st.done{background:var(--color-accent-bg); color:var(--color-accent-dark); border-color:var(--color-accent-border)}
+.st.cancel{background:var(--color-danger-bg); color:var(--color-danger); border-color:var(--color-danger-border)}
+
+/* 표 — 요청 내용은 줄바꿈을 그대로 살린다 */
+td.memo{
+  white-space:pre-wrap; line-height:1.6; font-size:var(--font-sm);
+  color:var(--color-text); font-weight:var(--weight-medium);
+}
+td.tel{font-family:var(--font-mono); font-size:var(--font-2xs); color:var(--color-text-sub)}
+td.day{font-family:var(--font-mono); font-size:var(--font-2xs); color:var(--color-text-sub)}
+tr.editing td{background:var(--color-accent-bg)}
+.btn.del{color:var(--color-danger)}
+
+.empty{
+  text-align:center; padding:var(--space-5xl) 0; color:var(--color-text-hint);
+  font-size:var(--font-sm); font-weight:var(--weight-medium);
+}
+
+/* ── 폰 ── */
+.qcard .r1{align-items:baseline}
+.qcard .day{margin-left:auto; font-family:var(--font-mono); font-size:var(--font-2xs); color:var(--color-text-muted); font-weight:var(--weight-semibold)}
+.qcard .memo{
+  font-size:var(--font-md); color:var(--color-text); line-height:1.55; margin-top:var(--space-sm);
+  white-space:pre-wrap; overflow-wrap:anywhere;
+}
+.qcard .foot{
+  display:flex; align-items:center; gap:var(--space-sm); margin-top:var(--space-md);
+  padding-top:var(--space-md); border-top:var(--border-width) solid var(--color-border-faint);
+}
+.qcard .foot .tel{font-family:var(--font-mono); font-size:var(--font-xs); color:var(--color-text-muted); font-weight:var(--weight-semibold)}
+.qcard .foot .call{
+  margin-left:auto; font-size:var(--font-xs); font-weight:var(--weight-bold); color:var(--color-accent-dark);
+  background:var(--color-accent-bg); border:var(--border-width) solid var(--color-accent-border);
+  border-radius:var(--radius-pill); padding:var(--pad-tag); text-decoration:none;
+}
+.noteline{
+  font-size:var(--font-xs); color:var(--color-text-muted); background:var(--color-bg);
+  border:var(--border-width) dashed var(--color-border); border-radius:var(--radius-md);
+  padding:var(--space-md) var(--space-lg); line-height:1.6;
+}
+.addbtn{
+  height:44px; border-radius:var(--radius-md); background:var(--color-surface);
+  border:var(--border-width) dashed var(--color-border); color:var(--color-accent-dark);
+  font-family:inherit; font-size:var(--font-md); font-weight:var(--weight-semibold); cursor:pointer;
+}
+/* 상태 바꾸기 — 폰에서는 드롭다운 대신 세 칸 토글 (장갑 낀 손) */
+.stpick{display:flex; gap:var(--space-3xs); background:var(--color-seg-bg); padding:2px; border-radius:var(--radius-md)}
+.stpick button{
+  flex:1; text-align:center; padding:var(--space-2xs) 0; border-radius:var(--radius-sm);
+  border:none; background:none; font-family:inherit;
+  font-size:var(--font-md); font-weight:var(--weight-semibold); color:var(--color-text-sub); cursor:pointer;
+}
+.stpick button.on{background:var(--color-surface); color:var(--color-accent-dark); box-shadow:var(--shadow-seg)}
+
+/* 폰 390px — 가로로 넘치는 것을 막는다 */
+@media screen and (max-width:899px){
+  .fgrid{grid-template-columns:1fr}
+  .stat{flex-wrap:wrap}
+  .sbar .inp{height:38px; font-size:var(--font-md)}
+}
+
+/* 견적 요청에서는 머리줄 버튼을 감춘다 — .headbtns 가 display:flex 라 hidden 속성만으로는 안 사라진다 */
+.headbtns[hidden]{display:none}
+

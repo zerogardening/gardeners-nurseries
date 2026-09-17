@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>정원사의 널서리 통합관리 — 견적 요청</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F4BF6B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="널서리">
+<link rel="icon" href="icons/icon-192.png?v=1">
+<link rel="apple-touch-icon" href="icons/icon-180.png?v=1">
+<meta http-equiv="Cache-Control" content="no-cache">
+
+<link rel="stylesheet" href="css/공통.css?v=1">
+<link rel="stylesheet" href="css/견적.css?v=1">
+</head>
+<body>
+
+<div id="앱"></div>
+<div id="토스트칸" aria-live="polite"></div>
+
+<!-- 상단탭 없는 한 화면이다. 전에는 주문 화면 안 탭이었다 (2026-09-17 자리 옮김).
+     주문.css 에서 견적 몫만 떼어 css/견적.css 로 옮겼다 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/00-확대금지.js?v=1"></script>
+<script src="js/00-새판.js?v=1"></script>
+<script src="js/00-시드.js?v=1"></script>
+<script src="js/01-저장소.js?v=1"></script>
+<script src="js/01a-설정.js?v=1"></script>
+<script src="js/01b-서버.js?v=1"></script>
+<script src="js/01c-보내기.js?v=1"></script>
+<script src="js/02-품목코드.js?v=1"></script>
+<script src="js/03-계산.js?v=1"></script>
+<script src="js/04-공통UI.js?v=1"></script>
+<script src="js/15a-견적자료.js?v=1"></script>
+<script src="js/15b-견적PC.js?v=1"></script>
+<script src="js/15c-견적폰.js?v=1"></script>
+<script src="js/15e-견적앱.js?v=1"></script>
+</body>
+</html>

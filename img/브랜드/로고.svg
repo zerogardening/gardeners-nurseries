@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- 정원사의 널서리 로고 — 색은 currentColor 를 따른다 -->
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="100" cy="100" r="96" stroke-width="2.4"/>
+    <circle cx="100" cy="100" r="90" stroke-width="1.4"/>
+    <circle cx="100" cy="100" r="82" stroke-width="1.4"/>
+    <!-- 해 -->
+    <circle cx="126" cy="52" r="4.6" stroke-width="1.8"/>
+    <g stroke-width="1.8">
+      <path d="M126 41.5v-4"/><path d="M126 66.5v-4"/>
+      <path d="M115.5 52h-4"/><path d="M140.5 52h-4"/>
+      <path d="M118.6 44.6l-2.8-2.8"/><path d="M136.2 62.2l-2.8-2.8"/>
+      <path d="M133.4 44.6l2.8-2.8"/><path d="M115.8 62.2l2.8-2.8"/>
+    </g>
+    <!-- 온실 -->
+    <g stroke-width="2">
+      <path d="M68 96V76l32-18 32 18v20"/>
+      <path d="M100 58v38"/>
+      <path d="M62 96h76"/>
+      <path d="M64 100h72"/>
+      <path d="M68 76h64"/>
+      <!-- 왼쪽 창살 -->
+      <path d="M78 82v14M88 82v14"/>
+      <path d="M68 88h24"/>
+      <!-- 새싹 -->
+      <path d="M116 96V86"/>
+      <path d="M116 88c0-5 4-8 9-8 0 5-4 8-9 8z"/>
+      <path d="M116 90c0-4-3.4-6.8-7.6-6.8 0 4.2 3.4 6.8 7.6 6.8z"/>
+    </g>
+    <!-- 밑줄 -->
+    <path d="M72 158h56" stroke-width="1.6"/>
+  </g>
+  <g fill="currentColor" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif">
+    <text x="100" y="122" font-size="15.5" letter-spacing="1.6">GARDENER'S</text>
+    <text x="100" y="138" font-size="15.5" letter-spacing="1.6">NURSERIES</text>
+    <text x="100" y="154" font-size="13" letter-spacing="2.4">IWOL</text>
+    <text x="100" y="170" font-size="6.6" letter-spacing="0.7" font-family="'Helvetica Neue', Arial, sans-serif">CREAT NEW GARDEN AND PLANT CHOOSE EASILY</text>
+  </g>
+</svg>
