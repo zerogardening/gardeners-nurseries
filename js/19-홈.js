@@ -17,7 +17,7 @@ window.ZG = window.ZG || {};
   var 사람 = ZG.사람;
   var 요일 = ['일', '월', '화', '수', '목', '금', '토'];
 
-  var 뿌리, 본문, 피드칸, 목록칸, 입력칸;
+  var 뿌리, 껍데기, 본문, 피드칸, 목록칸, 입력칸;
   var 탭 = '채팅';            // '채팅' | '업무'
   var 달, 고른날;
   var 거르개 = '';            // '' | '내' | 사람 메일
@@ -276,7 +276,13 @@ window.ZG = window.ZG || {};
       보내기();
     });
 
+    // 커서가 들어오면 위쪽을 접고, 나가면 편다
+    입력칸.addEventListener('focus', function () { 키보드(true); });
+    입력칸.addEventListener('blur', function () { 키보드(false); });
+
     var 보냄 = 만들기('button', { class: 'send', type: 'button', text: '↑', 'aria-label': '보내기' });
+    /* 🔴 mousedown 을 막아야 입력칸에서 커서가 안 빠진다 — 빠지면 키보드가 내려갔다 올라오며 화면이 튄다 */
+    보냄.addEventListener('mousedown', function (e) { e.preventDefault(); });
     보냄.addEventListener('click', 보내기);
 
     통.appendChild(더); 통.appendChild(입력칸); 통.appendChild(보냄);
@@ -617,10 +623,33 @@ window.ZG = window.ZG || {};
     ]);
 
     본문 = 만들기('div', { class: 'ph-body tight' });
-    뿌리.appendChild(만들기('div', { class: 'ph-shell' }, [위, 아래, 본문, u.탭바('홈', function (이름) {
-      return 이름 === '홈';   // 제 화면을 다시 불러 치던 글을 날리지 않는다
-    })]));
+
+    /* 🔴 채팅에서는 아래 탭바를 안 그린다 — 카톡처럼 대화가 화면을 다 쓴다 (2026-09-17 우람님).
+       나가는 길이 막히지 않는 까닭: 위 상단탭으로 「업무캘린더」에 가면 탭바가 다시 나온다.
+       그래서 상단탭은 키보드가 올라올 때 말고는 늘 보여야 한다. */
+    var 조각 = [위, 아래, 본문];
+    if (탭 !== '채팅') {
+      조각.push(u.탭바('홈', function (이름) {
+        return 이름 === '홈';   // 제 화면을 다시 불러 치던 글을 날리지 않는다
+      }));
+    }
+    껍데기 = 만들기('div', { class: 'ph-shell 홈셸' + (탭 === '채팅' ? ' 채팅중' : '') }, 조각);
+    뿌리.appendChild(껍데기);
     if (ZG.메모자료) ZG.메모자료.서명걸기(위);
+  }
+
+  /* ── 키보드가 올라오면 위쪽을 접는다 ──
+     머리줄 · 안읽음줄 · 상단탭 · 공지띠를 숨겨 대화와 입력칸만 남긴다.
+     🔴 visualViewport 를 재지 않고 focus/blur 로만 판단한다 — 아이폰은 칸에 커서가 들어간
+        그 순간 키보드를 올리므로 이걸로 충분하고, 재는 쪽은 기기마다 어긋난다.
+     🔴 화면을 다시 그리지 않는다. 결(class)만 붙였다 뗀다 — 치던 글은 그대로 있다. */
+  function 키보드(켬) {
+    if (!껍데기) return;
+    껍데기.classList.toggle('키보드', !!켬);
+    if (켬 && 피드칸) {
+      // 접히면서 생긴 높이만큼 아래로 따라 내려간다
+      setTimeout(function () { if (피드칸) 피드칸.scrollTop = 피드칸.scrollHeight; }, 60);
+    }
   }
 
   function 다시그리기() {
