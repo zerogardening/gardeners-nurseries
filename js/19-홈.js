@@ -841,10 +841,24 @@ window.ZG = window.ZG || {};
      🔴 키보드가 **올라오는 도중**에 재면 엉뚱하게 작은 값이 잡힌다.
         창의 1/4 보다 작은 값은 버린다 — 그 한 번을 박으면 대화 칸이 0 이 된다. */
   var 보임칸 = window.visualViewport || null;
+  var 기준높이 = 0;   // 키보드가 없을 때의 껍데기 높이. 첫 그림에서 재 둔다
+
+  function 기준재기() {
+    if (껍데기) 기준높이 = Math.round(껍데기.getBoundingClientRect().height);
+  }
+
   function 높이맞춤() {
     if (!껍데기 || !보임칸) return;
     var 높이 = Math.round(보임칸.height);
-    if (높이 < window.innerHeight * 0.25) return;   // 올라오는 도중에 잰 값 — 버린다
+
+    /* 🔴 여기가 두 번이나 화면을 날려먹은 자리다 (2026-09-17 우람님).
+       전에는 window.innerHeight 의 1/4 을 바닥으로 삼았는데, 그게 움직이는 잣대였다 —
+       홈화면 앱(standalone)에서는 키보드가 뜨면 innerHeight 자체가 같이 줄어든다.
+       그러면 바닥도 같이 낮아져, 키보드가 올라오는 **찰나의 90px** 같은 값이 그냥 통과했다.
+       껍데기가 90px 이 되면 대화 칸이 0 이 되고 입력줄만 화면 꼭대기에 남는다.
+       그래서 이제 잣대가 둘이다 — 움직이지 않는 절대 바닥, 그리고 처음에 잰 제 키. */
+    if (높이 < 240) return;                          // 이보다 작으면 잰 값이 잘못된 것이다
+    if (기준높이 && 높이 > 기준높이 + 4) return;      // 원래보다 커질 수는 없다
     껍데기.style.height = 높이 + 'px';
     /* 🔴 여기서 맨 아래로 끌어내리지 않는다. 아이폰은 굴리는 중에도 보이는 창을 흔들어
        이 함수를 부른다 — 끌어내리면 위로 올리려는 손을 도로 끌어내린다.
@@ -870,6 +884,7 @@ window.ZG = window.ZG || {};
     } else {
       if (보임칸) 보임칸.removeEventListener('resize', 높이맞춤);
       껍데기.style.height = '';   // dvh 로 되돌린다
+      setTimeout(기준재기, 120);   // 되돌아온 제 키를 다시 재 둔다
     }
   }
 
@@ -890,6 +905,7 @@ window.ZG = window.ZG || {};
       본문.appendChild(피드칸);
       본문.appendChild(입력줄());
       피드다시(true);
+      기준재기();          // 키보드 없는 지금이 제 키다 — 높이맞춤()의 잣대가 된다
       setTimeout(읽음표시, 1500);
     } else {
       목록칸 = 만들기('div', { class: '업무칸' });
