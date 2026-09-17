@@ -341,15 +341,17 @@
       dvh 는 실제로 보이는 높이라 키보드만큼 줄어든다. 못 알아듣는 판을 위해 vh 를 먼저 둔다. */
 .ph-shell.홈셸{min-height:100vh; min-height:100dvh}
 .ph-shell.홈셸.채팅중{height:100dvh; min-height:0; overflow:hidden}
-/* 탭바가 없는 채팅에서는 입력줄이 맨 아래다 */
-.ph-shell.채팅중 .wbar{bottom:0; padding-bottom:calc(8px + env(safe-area-inset-bottom))}
-.ph-shell.채팅중 .ph-body.홈채팅{padding-bottom:0}
+/* 🔴 탭바는 채팅에서도 있는다 — 입력줄은 그 위에 앉는다(아래 .wbar 기본 규칙).
+   키보드가 올라온 동안에만 탭바가 숨고 입력줄이 맨 아래로 내려간다 */
 
-/* 키보드가 올라오면 위쪽을 접는다 — 대화와 입력칸만 남는다 */
+/* 키보드가 올라오면 위쪽을 접고 **아래 탭바도 숨긴다** — 대화와 입력칸만 남는다.
+   🔴 마디를 지우지 않고 CSS 로만 숨긴다. 다시 그리면 치던 글이 날아간다 */
 .ph-shell.키보드 .ph-top,
 .ph-shell.키보드 .ph-sub,
 .ph-shell.키보드 .toggle,
+.ph-shell.키보드 .ph-nav,
 .ph-shell.키보드 .notice-자리{display:none}
+.ph-shell.키보드 .ph-body.홈채팅{padding-bottom:0}
 /* 🔴 키보드가 덮고 있으면 아래 안전여백은 쓸 데가 없다.
    아이폰이 그 값을 계속 34px 로 물고 있어, 안 걷으면 입력줄이 그만큼 떠 보인다 */
 .ph-shell.키보드 .wbar{padding-bottom:8px}
