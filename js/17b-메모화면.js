@@ -364,12 +364,32 @@ window.ZG = window.ZG || {};
     if (수정모드) 조각.push(옮김단추(r.id));
 
     var 카드 = 만들기('div', { class: 'mcard' + 상태결[상태] + (고름 && !수정모드 ? ' on' : '') }, 조각);
+
+    /* 수정모드에서는 쓸지 않는다 — 여러 장을 고르는 중에 한 장만 상태가 바뀌면 손이 꼬인다.
+       쓸기는 8px, 꾹누르기는 10px 에서 각각 잡고 놓으므로 둘이 서로 안 싸운다 */
+    var 닫기 = null;
+    if (!수정모드) {
+      var 단추들 = 상태들.map(function (이름) {
+        return u.쓸기단추(이름, 이름 + (이름 === 상태 ? ' on' : ''), function () {
+          if (이름 === 상태) { if (닫기) 닫기(); return; }
+          상태바꾸기([r.id], 이름);
+          u.열린줄잊기();
+          u.토스트('「' + 이름 + '」으로 옮겼습니다');
+          ZG.메모앱.다시그리기();
+        });
+      });
+      var 줄 = 만들기('div', { class: '쓸줄' }, [만들기('div', { class: '쓸단추' }, 단추들), 카드]);
+      닫기 = u.쓸기붙이기(카드, 상태들.length * 76);   // 공통.css 의 .쓸단추 button 너비와 맞춘다
+    }
+
     카드.addEventListener('click', function () {
       if (꾹눌림) { 꾹눌림 = false; return; }   // 꾹 눌러 수정모드로 들어간 그 손가락이다
+      if (u.방금끌었나()) return;
+      if (닫기 && u.열린줄인가(닫기)) { 닫기(); return; }   // 단추가 나와 있으면 먼저 닫는다
       if (수정모드) { 고르기(r.id, !고른것들[r.id]); ZG.메모앱.다시그리기(); return; }
       ZG.메모앱.열기(r.id);
     });
-    return 카드;
+    return 줄 || 카드;
   }
 
   function 고르기(id, 켬) {
@@ -456,6 +476,7 @@ window.ZG = window.ZG || {};
 
   function 목록칸그리기(칸, 종류) {
     u.비우기(칸);
+    u.열린줄잊기();   // 쓸어서 열어 둔 줄이 사라지는 참이다 — 그 닫기를 들고 있으면 다음 쓸기가 헛돈다
     var 줄들 = 목록({ 종류: 종류, 검색: 검색어, 폴더: 폴더거르개 });
     var 고른것 = ZG.메모앱.연것();
     var 목 = 만들기('div', { class: 'mlist' });
@@ -722,10 +743,13 @@ window.ZG = window.ZG || {};
   }
 
   function 일지카드(r) {
+    // 🔴 일지는 농장에 한 권이다(하루 한 장). 메모·체크와 달리 나누지 않으므로 누가 썼는지를 단다
+    var 끝줄 = 만들기('div', { class: 'mm' }, [만들기('span', { class: 'tm', text: '고친때 ' + 시각글(r.고친때) })]);
+    if (r.쓴이 && ZG.사람) 끝줄.appendChild(만들기('span', { class: 'ftag', text: ZG.사람.이름(r.쓴이) }));
     var 몸 = 만들기('div', { class: 'body' }, [
       만들기('div', { class: 'mt', text: 날씨글(r.날씨) || 제목뽑기(r.본문) }),
       만들기('div', { class: 'mp', text: 카드미리(r.본문) }),
-      만들기('div', { class: 'mm' }, [만들기('span', { class: 'tm', text: '고친때 ' + 시각글(r.고친때) })])
+      끝줄
     ]);
     var 카드 = 만들기('div', { class: 'mcard' }, [몸, 썸네일(r)]);
     카드.addEventListener('click', function () { ZG.메모앱.열기(r.id); });

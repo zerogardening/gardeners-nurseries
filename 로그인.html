@@ -10,7 +10,7 @@
 <link rel="icon" href="icons/icon-192.png?v=2">
 <link rel="apple-touch-icon" href="icons/icon-180.png?v=2">
 
-<link rel="stylesheet" href="css/공통.css?v=3">
+<link rel="stylesheet" href="css/공통.css?v=5">
 <style>
   /* 이 화면에만 쓰는 모양새 — 안쪽 화면과 짜임이 아주 다르다 */
   body{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px}
@@ -50,7 +50,7 @@
 <div class="문">
   <div class="패">
     <img class="로고" src="img/브랜드/로고-먹색.png" alt="정원사의 널서리">
-    <div class="곳">충북 진천군 이월면 · 통합관리</div>
+    <div class="곳">정원사의 널서리 통합관리프로그램</div>
 
     <!-- ── 로그인 ── -->
     <form id="로그인폼">
@@ -105,6 +105,19 @@
   }
   function 지움() { 말.className = '글'; }
 
+  /* 🔴 내가 누구인지 여기서 먼저 적어 둔다 (2026-09-17).
+     안쪽 화면은 첫 그림을 그리기 전에 이 값을 **동기로** 읽어 얼굴과 이름을 붙인다.
+     01b 가 세션을 받고 나서 적어 주기도 하지만 그건 한 박자 늦다 — 첫 그림에는 못 댄다.
+     설정은 기기별 값이라 서버로 안 나간다(01-저장소). */
+  function 나로표시(메일) {
+    try {
+      var 키 = 'gn.v1.설정';
+      var s = JSON.parse(localStorage.getItem(키) || '{}');
+      s.나 = String(메일 || '').toLowerCase();
+      localStorage.setItem(키, JSON.stringify(s));
+    } catch (e) { /* 못 적어도 01b 가 뒤따라 적는다 */ }
+  }
+
   /* 로그인 뒤 돌아갈 곳. 다른 사이트로는 안 보낸다 */
   function 갈곳() {
     var m = /[?&]from=([^&]+)/.exec(location.search);
@@ -114,7 +127,7 @@
         if (u.origin === location.origin) return u.href;
       } catch (e) {}
     }
-    return 'index.html';
+    return '홈.html';   // 홈이 첫 화면이다 (2026-09-17)
   }
 
   바꿈.addEventListener('click', function () {
@@ -156,6 +169,7 @@
     s.auth.signInWithPassword({ email: 아이디.toLowerCase(), password: document.getElementById('로그인비번').value })
       .then(function (r) {
         if (r.error) { 알림('이메일이나 비밀번호가 맞지 않습니다', true); return; }
+        나로표시(아이디);
         location.replace(갈곳());
       });
   });
@@ -185,7 +199,7 @@
         return;
       }
       /* 나중에 「이름을 넣으면 뜨는 이벤트 팝업」이 붙을 자리 (우람님 「나중에」) */
-      if (r.data && r.data.session) { location.replace(갈곳()); return; }
+      if (r.data && r.data.session) { 나로표시(아이디); location.replace(갈곳()); return; }
       알림('가입했습니다. 이제 로그인해 주세요.', false);
       바꿈.click();
     });

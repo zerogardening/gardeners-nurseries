@@ -9,7 +9,7 @@ window.ZG = window.ZG || {};
   var 주소 = 설정.서버주소 || '';
   var 공개키 = 설정.공개키 || '';
   var 토큰키 = 설정.토큰키 ? 설정.토큰키() : '';
-  var 표들 = ['품목', '입고', '출고', '재고조정', '업체', '명세서', '명세서줄', '견적요청', '메모'];
+  var 표들 = ['품목', '입고', '출고', '재고조정', '업체', '명세서', '명세서줄', '견적요청', '메모', '사람', '업무'];
 
   var 서버 = {
     로그인됨: false, 켜짐: false, 아직안올림: false,
@@ -124,6 +124,11 @@ window.ZG = window.ZG || {};
   function 치는중() {
     var a = document.activeElement;
     if (!a) return false;
+    /* 🔴 단 하나의 예외 — 「다시 그려도 이 칸은 안 갈아끼운다」고 스스로 약속한 칸.
+       홈 화면의 채팅 입력칸이 그것이다(19-홈.js 는 피드만 갈고 입력칸 마디는 손대지 않는다).
+       이 예외가 없으면 한 사람이 2분 동안 글을 치는 내내 남의 말이 한 줄도 안 들어온다.
+       🔴 그 약속을 못 지키는 화면은 절대 이 딱지를 붙이면 안 된다 — 치던 글이 날아간다. */
+    if (a.getAttribute && a.getAttribute('data-그려도됨') !== null) return false;
     if (a.isContentEditable) return true;
     if (a.tagName === 'TEXTAREA') return true;
     return a.tagName === 'INPUT' && 글자칸[(a.type || 'text').toLowerCase()] === 1;
@@ -137,7 +142,9 @@ window.ZG = window.ZG || {};
   function 그리기() {
     예약 = null;
     if (치는중()) { 예약 = setTimeout(그리기, 400); return; }   // 손 뗄 때까지 되물어본다
-    ['앱', '업체앱', '메모앱', '견적앱'].forEach(function (이름) {
+    /* 🔴 새 셸을 만들면 이 줄에 이름을 넣어야 한다 — 안 넣으면 남이 넣은 것이 그 화면에 영영 안 뜬다.
+       견적앱은 빠졌다 (견적이 메모 안 상단탭으로 들어가 메모앱이 대신 그린다, 2026-09-17) */
+    ['앱', '업체앱', '메모앱', '홈앱'].forEach(function (이름) {
       var a = ZG[이름];
       if (a && typeof a.다시그리기 === 'function') { try { a.다시그리기(); } catch (e) { console.warn(e); } }
     });
@@ -277,6 +284,8 @@ window.ZG = window.ZG || {};
       location.replace(설정.로그인화면 + '?from=' + encodeURIComponent(location.href));
       throw new Error('세션 없음');
     }
+    // 내가 누구인지 여기서 한 번만 정한다 — 01d-사람 이 이 값으로 내 줄을 찾는다
+    if (ZG.사람 && ZG.사람.세션) ZG.사람.세션(r.data.session.user);
     return 서버상태읽기();
   }).then(function (행) {
     구독();

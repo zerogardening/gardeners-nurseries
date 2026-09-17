@@ -1,7 +1,7 @@
 {
   "name": "정원사의 널서리 통합관리",
   "short_name": "널서리",
-  "start_url": "./index.html",
+  "start_url": "./홈.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#FAF3E7",

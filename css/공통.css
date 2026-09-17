@@ -124,6 +124,9 @@ html.pc보기{ touch-action: auto; }
   --pad-stat:      14px 16px;
   --pad-tab:        6px 20px 7px;
   --pad-nav-item:   9px 0 12px;
+  /* 폰 아래 탭바가 실제로 먹는 높이. 재 보니 73px 이다(아이콘 24 + 글씨 + 위아래 여백).
+     🔴 탭바 위에 무언가를 앉힐 때는 이 값을 쓴다 — 숫자를 따로 적으면 둘이 어긋나 글씨가 가린다 */
+  --탭바높이:      calc(73px + env(safe-area-inset-bottom));
   --pad-ph-top:    10px 20px 12px;
   --pad-ph-top-y:  10px;
   --pad-ph-sub:     9px 20px;
@@ -457,6 +460,56 @@ td.zero{color:var(--color-danger); font-weight:var(--weight-bold)}
 .fchip.on{background:var(--color-accent); color:var(--color-on-accent); border-color:var(--color-accent-dark)}
 .fchip .n{opacity:.7; margin-left:var(--space-3xs); font-variant-numeric:tabular-nums}
 .fchip.alert.on{background:var(--color-danger); border-color:var(--color-danger)}
+
+/* ══════════ 쓸어서 단추 내기 ══════════
+   체크리스트 줄과 메모 카드가 같이 쓴다 (04-공통UI 의 쓸기붙이기). 체크리스트에만 있던 것을 여기로 올렸다.
+   짜임은 .쓸줄 > [.쓸단추, 카드] — 카드가 왼쪽으로 밀리면 뒤에 숨어 있던 단추가 드러난다.
+   🔴 단추 너비(기본 76px)와 쓸기붙이기에 넘기는 폭이 어긋나면 단추가 반만 나온다. 부르는 쪽에서 맞춘다.
+   🔴 결 이름을 `.edit` 로 두면 안 된다 — 메모.css 의 `.edit` 는 본문 편집칸이다 */
+.쓸줄{position:relative; overflow:hidden; border-radius:var(--radius-lg)}
+.쓸단추{position:absolute; top:0; right:0; bottom:0; display:flex}
+.쓸단추 button{
+  width:76px; border:none; padding:0; font-family:inherit; cursor:pointer; color:#fff;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:var(--space-4xs); -webkit-tap-highlight-color:transparent; transition:filter .12s ease;
+}
+.쓸단추 button:active{filter:brightness(.86)}
+.쓸단추 button .ic{width:23px; height:23px; display:block}
+.쓸단추 button .ic svg{width:100%; height:100%; display:block}
+.쓸단추 button .lb{font-size:var(--font-2xs); font-weight:var(--weight-semibold); letter-spacing:-.01em}
+/* 지금 그 상태인 단추는 눌러도 달라질 게 없다 — 옅게 둔다 */
+.쓸단추 button.on{opacity:.45}
+
+/* ══════════ 사람 얼굴 ══════════ (01d-사람)
+   사진이 있으면 <img>, 없으면 이름 첫 글자. 색은 메일에서 뽑아 늘 같은 색이 나온다 */
+.얼굴{
+  width:34px; height:34px; flex:0 0 34px; border-radius:50%; overflow:hidden; object-fit:cover;
+  border:var(--border-width) solid var(--color-border); background:var(--color-surface);
+  display:flex; align-items:center; justify-content:center;
+  font-size:var(--font-md); font-weight:var(--weight-bold); color:var(--color-text-sub);
+  line-height:1; user-select:none;
+}
+.얼굴.sm{width:24px; height:24px; flex:0 0 24px; font-size:var(--font-2xs)}
+.얼굴.큰{width:72px; height:72px; flex:0 0 72px; font-size:var(--font-3xl)}
+.얼굴.우{background:#F6E2C4} .얼굴.지{background:#DDE8D4} .얼굴.영{background:#E9DDEA}
+.얼굴.나{background:#DCE4EE} .얼굴.다{background:#F3DCD6} .얼굴.라{background:#E4E2CE}
+
+/* PC 곁줄 맨 아래 내 자리 */
+.pc-side button.내자리{
+  display:flex; align-items:center; gap:var(--space-sm); text-align:left;
+  padding:var(--space-sm) var(--space-md); margin:0;
+  border-top:var(--border-width) solid var(--color-border); border-radius:0; background:none;
+}
+.pc-side button.내자리 .t{min-width:0; line-height:1.25}
+.pc-side button.내자리 .n{display:block; font-size:var(--font-sm); font-weight:var(--weight-bold); color:var(--color-text)}
+.pc-side button.내자리 .j{display:block; font-size:var(--font-3xs); font-weight:var(--weight-semibold); color:var(--color-text-hint)}
+
+/* 프로필 창 */
+.프로필머리{display:flex; align-items:center; gap:var(--space-lg)}
+.프로필메일{
+  font-size:var(--font-sm); color:var(--color-text-muted); font-weight:var(--weight-semibold);
+  padding:var(--space-sm) 0;
+}
 
 .seg{display:flex; gap:var(--space-xs); flex-wrap:wrap}
 .seg button{
@@ -1011,3 +1064,12 @@ td.zero{color:var(--color-danger)}
 .paper .pline{height:5px; margin:6px 0 16px;
   background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='5' viewBox='0 0 600 5'><path d='M2 3C120 1 240 4 360 2.4 450 1.2 520 3 598 2' stroke='%23C68C60' stroke-width='2' fill='none' stroke-linecap='round'/></svg>") repeat-x}
 .paper table td{border-bottom:1px solid #EADCC2}
+
+/* 폰 아래 탭바 — 홈 칸의 안 읽은 쪽지 수 (04-공통UI 안읽은쪽지) */
+.ph-nav button{position:relative}
+.tabdot{
+  position:absolute; top:3px; left:50%; margin-left:4px;
+  min-width:16px; height:16px; padding:0 4px; border-radius:var(--radius-pill);
+  background:var(--color-danger); color:#fff;
+  font-size:10px; font-weight:var(--weight-bold); line-height:16px; text-align:center;
+}

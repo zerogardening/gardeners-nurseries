@@ -26,11 +26,15 @@
     } catch (e) { /* 그냥 지금처럼 */ }
   }
 
-  // 🔴 아이콘도 `?v=2` 를 달고 있다. 반드시 js·css 만 본다 — 안 그러면 늘 어긋나 되돌이 새로고침이 된다
-  var 판찾기 = /\.(?:js|css)\?v=(\d+)/;
+  /* 🔴 받아온 HTML 에서는 **이 파일의 줄만** 찾는다 (2026-09-17 고침).
+     전에는 `\.(?:js|css)\?v=(\d+)` 로 「맨 처음 걸리는 것」을 잡았는데, 그게 <head> 의
+     `css/공통.css?v=N` 이라 내 판(`00-새판.js?v=1`)과 영영 안 맞았다 —
+     http(s) 로 열 때마다 되돌이 방패(2회)가 멈출 때까지 헛 새로고침을 두 번씩 했다.
+     🔴 그래서 이제 **`00-새판.js` 의 `?v=` 가 배포 방아쇠다.** 판을 올릴 때 이것도 같이 올린다. */
+  var 서버판찾기 = /00-새판\.js\?v=(\d+)/;
 
   var 나 = (document.currentScript && document.currentScript.src) || '';
-  var 내판 = 나.match(판찾기);
+  var 내판 = 나.match(서버판찾기);
   if (!내판) return;                        // ?v= 없이 여는 판이면 할 일이 없다
   내판 = 내판[1];
 
@@ -47,7 +51,7 @@
     return 답 && 답.ok ? 답.text() : null;
   }).then(function (글) {
     if (!글) return;
-    var 서버판 = 글.match(판찾기);
+    var 서버판 = 글.match(서버판찾기);
     if (!서버판 || 서버판[1] === 내판) {
       try { sessionStorage.removeItem(열쇠); } catch (e) { /* 무시 */ }
       return;   // 이미 새것이다

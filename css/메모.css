@@ -13,9 +13,15 @@
 
 /* 메모 카드 */
 .mlist{display:flex; flex-direction:column; gap:var(--space-sm)}
+/* 🔴 쓸기가 붙는 카드다 (04-공통UI 의 쓸기붙이기) — 세로 굴림은 브라우저에 맡기고 가로만 우리가 잡는다.
+   바탕이 비치면 밑에 깔린 단추가 글씨 뒤로 비쳐 보인다 — 반드시 불투명하게 둔다 */
+/* 🔴 position:relative 가 없으면 뒤에 숨어 있어야 할 쓸기 단추가 카드 **위로** 올라와 늘 보인다
+   (절대배치된 .쓸단추 와 쌓임 순서가 뒤집힌다). .ckcard 도 같은 까닭으로 relative 다 */
 .mcard{
+  position:relative;
   background:var(--color-surface); border-radius:var(--radius-lg); padding:var(--space-lg) var(--space-2xl);
   box-shadow:var(--shadow-card); display:flex; gap:var(--space-lg); align-items:flex-start; cursor:pointer;
+  touch-action:pan-y; transition:transform .18s ease;
 }
 .mcard.on{box-shadow:0 0 0 2px var(--color-accent), var(--shadow-card)}
 .mcard .body{flex:1; min-width:0}
@@ -179,21 +185,14 @@
 .ckadd{margin-bottom:var(--space-lg)}
 .cklist{display:flex; flex-direction:column; gap:var(--space-sm)}
 
-/* 쓸면 카드가 왼쪽으로 밀리고 뒤에 숨어 있던 단추가 드러난다 */
-.ckrow{position:relative; overflow:hidden; border-radius:var(--radius-lg)}
-.ckacts{position:absolute; top:0; right:0; bottom:0; display:flex}
-/* 🔴 결 이름이 `.ed` 인 것은 일부러다. `.edit` 는 위쪽에서 본문 편집칸이 이미 쓰고 있다 */
-.ckacts button{
-  width:76px; border:none; padding:0; font-family:inherit; cursor:pointer; color:#fff;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:var(--space-4xs); -webkit-tap-highlight-color:transparent; transition:filter .12s ease;
-}
-.ckacts button:active{filter:brightness(.86)}
-.ckacts button .ic{width:23px; height:23px; display:block}
-.ckacts button .ic svg{width:100%; height:100%; display:block}
-.ckacts button .lb{font-size:var(--font-2xs); font-weight:var(--weight-semibold); letter-spacing:-.01em}
-.ckacts .ed{background:#8E8E93}     /* 아이폰 메모장 회색 */
-.ckacts .del{background:#FF3B30}    /* 아이폰 메모장 빨강 */
+/* 쓸기 짜임(.쓸줄·.쓸단추)은 공통.css 로 올라갔다 — 메모 카드가 같은 것을 쓴다.
+   여기 남은 것은 색뿐이다. 🔴 결 이름이 `.ed` 인 것은 일부러다 — `.edit` 는 본문 편집칸이 이미 쓰고 있다 */
+.쓸단추 .ed{background:#8E8E93}     /* 아이폰 메모장 회색 */
+.쓸단추 .del{background:#FF3B30}    /* 아이폰 메모장 빨강 */
+/* 메모 카드를 쓸면 나오는 셋 — 진행중 · 완료 · 보류 (2026-09-17 우람님) */
+.쓸단추 .진행중{background:#8E8E93}
+.쓸단추 .완료{background:#34C759}
+.쓸단추 .보류{background:#FF9500}
 
 .ckcard{
   position:relative; display:flex; gap:var(--space-md); align-items:flex-start;
@@ -239,4 +238,183 @@
 .empty{
   padding:var(--space-4xl) var(--space-lg); text-align:center;
   color:var(--color-text-muted); font-size:var(--font-sm);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   홈 — 채팅 · 업무캘린더 (2026-09-17 우람님 · 시안 널서리-04-홈)
+   달력(.cal·.calhd)·두칸(.cols)·팹(.ph-fab)·칩(.fchip)·얼굴(.얼굴)은 있는 것을 그대로 쓴다.
+   새 css 파일을 만들지 않는다 — 홈.html 이 메모.css 를 싣는다.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 폰 머리 오른쪽 내 얼굴 ── */
+.내얼굴{border:none; background:none; padding:0; cursor:pointer; line-height:0}
+
+/* ══ 채팅 ══ */
+.wfeed{display:flex; flex-direction:column; min-height:0}
+.wlist{display:flex; flex-direction:column; gap:var(--space-md)}
+.wday{
+  display:flex; align-items:center; gap:var(--space-sm); margin:var(--space-md) 0 var(--space-3xs);
+  font-size:var(--font-2xs); font-weight:var(--weight-bold); color:var(--color-text-hint);
+}
+.wday::before, .wday::after{content:''; flex:1; height:var(--border-width); background:var(--color-border-faint)}
+
+.wrow{display:flex; gap:var(--space-sm); align-items:flex-start}
+.wrow.me{flex-direction:row-reverse}
+.wbody{min-width:0; max-width:78%; display:flex; flex-direction:column; gap:3px}
+.wrow.me .wbody{align-items:flex-end}
+.wname{font-size:var(--font-2xs); font-weight:var(--weight-bold); color:var(--color-text-muted)}
+.wname .tm{font-weight:var(--weight-semibold); color:var(--color-text-hint); margin-left:5px; font-variant-numeric:tabular-nums}
+.wbub{
+  background:var(--color-surface); border:var(--border-width) solid var(--color-border);
+  border-radius:var(--radius-lg); padding:9px 13px;
+  font-size:var(--font-md); line-height:1.5; color:var(--color-text);
+  box-shadow:var(--shadow-card); word-break:break-word; white-space:pre-wrap;
+  user-select:none;   /* 꾹 누를 때 글자가 잡혀 파랗게 칠해지지 않게 */
+}
+.wrow.me .wbub{
+  background:var(--color-accent); border-color:var(--color-accent-dark); color:var(--color-on-accent);
+  box-shadow:var(--shadow-btn-main);
+}
+/* 업무로 올린 줄에 남는 딱지 */
+.wup{
+  display:inline-flex; align-items:center; gap:4px; align-self:flex-start;
+  font-family:inherit; font-size:var(--font-2xs); font-weight:var(--weight-bold); cursor:pointer;
+  background:var(--color-accent-bg); color:var(--color-accent-dark);
+  border:var(--border-width) dashed var(--color-accent-border);
+  border-radius:var(--radius-pill); padding:2px 9px;
+}
+.wrow.me .wup{align-self:flex-end}
+
+.wnew{
+  display:flex; align-items:center; gap:var(--space-sm); margin:var(--space-md) 0 var(--space-3xs);
+  font-size:var(--font-2xs); font-weight:var(--weight-bold); color:var(--color-danger);
+}
+.wnew::before, .wnew::after{content:''; flex:1; height:var(--border-width); background:var(--color-danger-border)}
+
+/* ── 공지 띠 ── 꾹 눌러 올린 것이 채팅 맨 위에 붙어 있는다 */
+.notice{
+  display:flex; align-items:center; gap:var(--space-sm);
+  background:var(--color-accent-bg); border:var(--border-width) solid var(--color-accent-border);
+  border-radius:var(--radius-md); padding:8px 10px 8px 12px; box-shadow:var(--shadow-card);
+}
+.notice .pin{flex:0 0 auto; font-size:15px; line-height:1}
+.notice .tx{
+  flex:1; min-width:0; font-size:var(--font-sm); font-weight:var(--weight-semibold); color:var(--color-accent-dark);
+  line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.notice .tx .by{font-weight:var(--weight-semibold); color:var(--color-text-hint); margin-left:6px}
+.notice .cnt{
+  flex:0 0 auto; font-size:var(--font-3xs); font-weight:var(--weight-bold);
+  background:var(--color-accent); color:var(--color-on-accent);
+  border-radius:var(--radius-pill); padding:2px 7px;
+}
+.notice .x{
+  flex:0 0 auto; border:none; background:none; font-family:inherit; cursor:pointer;
+  font-size:16px; line-height:1; color:var(--color-text-hint); padding:2px 4px;
+}
+
+/* ── 아래 입력줄 ── 🔴 이 마디는 다시 그릴 때 갈아끼우지 않는다 (19-홈 피드다시) */
+.wbar{
+  display:flex; align-items:flex-end; gap:var(--space-xs);
+  background:var(--color-ios-bar); border-top:var(--border-width) solid var(--color-border);
+  padding:8px 10px;
+  position:sticky; bottom:0; z-index:10;
+}
+.wbar .plus, .wbar .send{
+  flex:0 0 auto; width:38px; height:38px; border-radius:50%;
+  border:var(--border-width) solid var(--color-border); background:var(--color-surface);
+  font-family:inherit; font-size:19px; line-height:1; cursor:pointer;
+  color:var(--color-text-sub); box-shadow:var(--shadow-btn);
+}
+.wbar .send{background:var(--color-accent); border-color:var(--color-accent-dark); color:var(--color-on-accent); box-shadow:var(--shadow-btn-main)}
+.wbar .inp{flex:1; min-width:0; resize:none; line-height:1.45; padding:9px 12px}
+/* 폰은 아래 탭바 위에 앉는다.
+   🔴 .ph-body 의 넉넉한 아래 여백(96px)은 팹이 쓰는 것이다 — 입력줄이 있는 화면에서는 그만큼 뜬다.
+      홈 채팅은 여백을 줄이고, 피드가 남는 높이를 먹어 입력줄을 바닥으로 민다. */
+.ph-shell .wbar{bottom:var(--탭바높이)}
+.ph-shell .wfeed{flex:1; min-height:0; padding-bottom:var(--space-sm)}
+.ph-body.홈채팅{padding-bottom:var(--탭바높이)}
+.pc-main .wbar{max-width:700px; border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); margin-top:var(--space-lg)}
+.pc-main .wlist{max-width:700px}
+.pc-main .notice{max-width:700px}
+
+/* ══ 업무캘린더 ══ */
+/* 달력 칸의 담당자 색 점. 속 빈 점은 명세서다 */
+.cal .d .dots{display:flex; gap:2px; height:5px; align-items:center}
+.cal .d .dots i{width:5px; height:5px; border-radius:50%; display:block; background:var(--color-accent)}
+.cal .d .dots i.색우{background:#C98F35} .cal .d .dots i.색지{background:#7FA164}
+.cal .d .dots i.색영{background:#9B7BAE} .cal .d .dots i.색나{background:#6E87AB}
+.cal .d .dots i.색다{background:#C4776A} .cal .d .dots i.색라{background:#9A9A5E}
+.cal .d .dots i.서{background:transparent; box-shadow:0 0 0 1.5px var(--color-text-faint)}
+.cal .d.on .dots i{background:var(--overlay-strong)}
+.cal .d.on .dots i.서{background:transparent; box-shadow:0 0 0 1.5px var(--overlay-strong)}
+
+.tsec{display:flex; align-items:baseline; justify-content:space-between; margin:var(--space-lg) 0 var(--space-3xs)}
+.tsec h3{font-size:var(--font-xl); font-weight:var(--weight-bold); letter-spacing:-.02em}
+.tsec .r{font-size:var(--font-2xs); font-weight:var(--weight-bold); color:var(--color-text-muted)}
+
+.tlist{display:flex; flex-direction:column; gap:var(--space-sm)}
+.tcard{
+  display:flex; gap:var(--space-md); align-items:flex-start;
+  padding:var(--space-md) var(--space-lg); background:var(--color-surface);
+  border:var(--border-width) solid var(--color-border-faint); border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card); cursor:pointer;
+}
+.tcard .ck{width:22px; height:22px; flex:0 0 22px; margin-top:2px; accent-color:var(--color-accent); cursor:pointer}
+.tcard .body{flex:1; min-width:0}
+.tcard .t{font-size:var(--font-lg); font-weight:var(--weight-semibold); line-height:1.35; word-break:break-word}
+.tcard .d{margin-top:3px; font-size:var(--font-sm); color:var(--color-text-sub); line-height:1.5; white-space:pre-wrap}
+.tcard .m{display:flex; align-items:center; gap:var(--space-xs); margin-top:var(--space-sm); flex-wrap:wrap; font-size:var(--font-2xs)}
+.tcard .m .who{
+  display:inline-flex; align-items:center; gap:5px; font-weight:var(--weight-bold);
+  background:var(--color-accent-bg); color:var(--color-accent-dark);
+  border:var(--border-width) solid var(--color-accent-border);
+  border-radius:var(--radius-pill); padding:1px 8px 1px 2px;
+}
+.tcard .m .when{
+  background:var(--color-gold-bg, #FCEFCF); color:#8A5A00;
+  border:var(--border-width) solid var(--color-gold-dark); border-radius:var(--radius-pill);
+  padding:2px 8px; font-weight:var(--weight-bold); font-variant-numeric:tabular-nums;
+}
+.tcard .m .late{
+  background:var(--color-danger-bg); color:var(--color-danger);
+  border:var(--border-width) solid var(--color-danger-border);
+  border-radius:var(--radius-pill); padding:2px 8px; font-weight:var(--weight-bold);
+}
+.tcard .m .by{color:var(--color-text-hint); font-weight:var(--weight-semibold)}
+.tcard.done{background:var(--color-bg)}
+.tcard.done .t{text-decoration:line-through; color:var(--color-text-muted)}
+.tcard.done .d{color:var(--color-text-muted)}
+/* 명세서에서 저절로 올라온 줄 — 손으로 넣은 업무가 아니라는 표 */
+.tcard.auto{background:transparent; border-style:dashed; box-shadow:none; cursor:default}
+.tcard.auto .t{font-size:var(--font-md); font-weight:var(--weight-semibold); color:var(--color-text-sub)}
+.tcard.auto .tag{
+  font-size:var(--font-3xs); font-weight:var(--weight-bold); color:var(--color-text-hint);
+  border:var(--border-width) solid var(--color-border); border-radius:var(--radius-pill);
+  padding:1px 7px; margin-right:6px; vertical-align:middle;
+}
+
+/* 업무 창의 사람·날짜 고르개 */
+.pickrow{display:flex; gap:var(--space-xs); flex-wrap:wrap; margin-bottom:var(--space-sm)}
+.pickrow button{
+  display:inline-flex; align-items:center; gap:6px; font-family:inherit; cursor:pointer;
+  font-size:var(--font-sm); font-weight:var(--weight-semibold); padding:3px 11px 3px 3px;
+  border-radius:var(--radius-pill); background:var(--color-surface); color:var(--color-text-sub);
+  border:var(--border-width) solid var(--color-border); box-shadow:var(--shadow-btn);
+}
+.pickrow button.on{background:var(--color-accent); border-color:var(--color-accent-dark); color:var(--color-on-accent)}
+
+/* PC 는 왼쪽 달력 / 오른쪽 그날 업무 */
+@media (min-width: 900px){
+  /* 🔴 줄을 못 박지 않으면 오른쪽 목록이 달력 **아래**로 밀린다(격자가 다음 빈 줄을 찾는다) */
+  .업무칸{
+    display:grid; grid-template-columns:420px 1fr; grid-template-rows:auto auto 1fr;
+    gap:0 var(--space-2xl); align-items:start;
+  }
+  .업무칸 > .calhd{grid-column:1; grid-row:1; margin-bottom:var(--space-sm)}
+  .업무칸 > .cal{grid-column:1; grid-row:2}
+  .업무칸 > .fchips{grid-column:1; grid-row:3; margin-top:var(--space-lg); align-self:start}
+  .업무칸 > .tsec{grid-column:2; grid-row:1; margin:0 0 var(--space-sm)}
+  .업무칸 > .tlist, .업무칸 > .empty{grid-column:2; grid-row:2 / span 2; align-self:start}
+  .pc-main .ph-fab{display:none}   /* PC 는 목록 머리의 단추로 넣는다 */
 }

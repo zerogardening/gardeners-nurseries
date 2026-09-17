@@ -218,20 +218,9 @@ window.ZG = window.ZG || {};
     document.addEventListener('keydown', 열쇠);
   }
 
-  /* ── 폰 아래 「⋯ 더보기」 ── 아래 탭에 자리가 셋뿐이라 나머지를 여기 모은다.
-     네 화면(상품·업체·메모·견적)이 이 하나를 같이 쓴다 */
-  function 더보기시트(지금) {
-    고르기({
-      제목: '더보기',
-      항목: [
-        { 값: '견적', 그림: '말풍선', 글: '견적 요청', 켬: 지금 === '견적' },
-        { 값: 'PC보기', 그림: PC보기인가() ? '폰' : '화면', 글: PC보기인가() ? '폰화면으로' : 'PC화면으로' }
-      ]
-    }, function (값) {
-      if (값 === '견적') location.href = '견적.html';
-      else if (값 === 'PC보기') PC보기(!PC보기인가());
-    });
-  }
+  /* 🔴 「⋯ 더보기」는 없앴다 (2026-09-17).
+     견적요청은 메모 안 상단탭으로, PC보기는 프로필 시트(01d-사람 내시트)로 갔다.
+     아래 탭 넷이 곧 화면 넷이라 남길 것이 없다. */
 
   /* ── 탭·메뉴 아이콘 ──
      이모지는 기기마다 그림이 다르고 색도 제멋대로다(아이폰·안드로이드·PC가 전부 다르게 그린다).
@@ -249,7 +238,10 @@ window.ZG = window.ZG || {};
           '<path d="M14.5 19.5l1.8-.5.6-1.8-1.3-1.3-1.8.6-.5 1.8z"/>',
     점셋: '<circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
     폰:   '<rect x="5.5" y="2.5" width="13" height="19" rx="2.6"/><path d="M10.5 5.5h3"/><path d="M12 18.2h.01"/>',
-    화면: '<rect x="2.5" y="3.5" width="19" height="13" rx="2.2"/><path d="M8.5 20.5h7M12 16.5v4"/>'
+    화면: '<rect x="2.5" y="3.5" width="19" height="13" rx="2.2"/><path d="M8.5 20.5h7M12 16.5v4"/>',
+    집:   '<path d="M3.5 10.5L12 3.5l8.5 7"/><path d="M5.5 9.5v11h13v-11"/><path d="M9.8 20.5v-6h4.4v6"/>',
+    사람: '<circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5c0-3.6 3.4-5.8 7.5-5.8s7.5 2.2 7.5 5.8"/>',
+    나감: '<path d="M14.5 3.5h4.5a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 1-1.5 1.5h-4.5"/><path d="M9.5 16L5.5 12l4-4"/><path d="M5.5 12h10"/>'
   };
   function 아이콘(이름) {
     return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85"' +
@@ -298,33 +290,127 @@ window.ZG = window.ZG || {};
     return 칸;
   }
 
+  /* ── 쓸어서 단추 내기 (아이폰 메모장) ──
+     체크리스트(17c)가 쓰던 것을 여기로 올렸다 — 메모 카드(17b)도 같은 몸짓을 쓴다.
+     두 벌을 두면 「한 번에 하나만 열린다」가 화면마다 따로 놀아 두 줄이 같이 열린다.
+     🔴 세로로 굴리는 손가락을 가로로 오해하면 목록을 못 굴리신다 — |dx| 가 |dy| 보다 클 때만 잡는다.
+     쓰는 쪽은 겉을 .쓸줄 로 감싸고 그 안에 .쓸단추 와 카드를 넣는다. 폭은 단추 너비 합과 맞춘다. */
+  var 열린줄닫기 = null;   // 단추가 나와 있는 줄을 닫는 함수. 한 번에 하나만 연다
+  var 방금끌었다 = false;  // 쓸던 손가락이 뗀 자리에서 클릭이 한 번 더 온다 — 그걸 삼킨다
+
+  function 방금끌었나() {
+    if (!방금끌었다) return false;
+    방금끌었다 = false;
+    return true;
+  }
+  function 열린줄인가(닫기) { return 열린줄닫기 === 닫기; }
+  function 열린줄잊기() { 열린줄닫기 = null; }   // 목록을 새로 그리기 전에 부른다
+
+  function 쓸기붙이기(카드, 폭) {
+    var 시작x = null, 시작y = null, 끌기 = false, 열림 = false;
+
+    function 놓기(값) {
+      열림 = 값;
+      카드.style.transition = '';
+      카드.style.transform = 값 ? 'translateX(-' + 폭 + 'px)' : '';
+      열린줄닫기 = 값 ? 닫기 : (열린줄닫기 === 닫기 ? null : 열린줄닫기);
+    }
+    function 닫기() { 놓기(false); }
+
+    카드.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (e.target.tagName === 'INPUT') return;   // 체크박스를 누른 손가락은 쓸기가 아니다
+      시작x = e.clientX; 시작y = e.clientY; 끌기 = false;
+    });
+    카드.addEventListener('pointermove', function (e) {
+      if (시작x == null) return;
+      var dx = e.clientX - 시작x, dy = e.clientY - 시작y;
+      if (!끌기) {
+        if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(dy)) return;
+        끌기 = true;
+        try { 카드.setPointerCapture(e.pointerId); } catch (err) { /* 무시 */ }
+        if (열린줄닫기 && 열린줄닫기 !== 닫기) 열린줄닫기();
+        카드.style.transition = 'none';
+      }
+      카드.style.transform = 'translateX(' + Math.min(0, Math.max(-폭, (열림 ? -폭 : 0) + dx)) + 'px)';
+    });
+    function 끝(e) {
+      if (시작x == null) return;
+      var dx = e.clientX - 시작x;
+      시작x = null;
+      if (!끌기) return;
+      끌기 = false;
+      방금끌었다 = true;
+      놓기(열림 ? dx < 40 : dx < -50);
+    }
+    ['pointerup', 'pointercancel'].forEach(function (t) { 카드.addEventListener(t, 끝); });
+    return 닫기;
+  }
+
+  /* 쓸었을 때 나오는 단추 — 그림 위, 글씨 아래. 그림(path 문자열)은 없어도 된다 */
+  function 쓸기단추(글, 결, 누름, 그림html) {
+    var 속 = [];
+    if (그림html) {
+      속.push(만들기('span', {
+        class: 'ic',
+        html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+              'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + 그림html + '</svg>'
+      }));
+    }
+    속.push(만들기('span', { class: 'lb', text: 글 }));
+    var b = 만들기('button', { type: 'button', class: 결, 'aria-label': 글 }, 속);
+    b.addEventListener('click', 누름);
+    return b;
+  }
+
   /* ── 폰 아래 탭바 · PC 왼쪽 메뉴 ──
      화면마다 제 것을 만들면 메뉴 하나 늘 때 여러 곳을 고쳐야 한다. 네 화면이 이 둘을 같이 쓴다.
-     🔴 곁줄은 넷이다 — 상품 · 업체 · 메모 · 견적 요청.
-        「재고」는 상품 안 상단탭, 「명세서 발행」은 업체 안 상단탭이다. */
+     🔴 곁줄은 넷이다 — 홈 · 상품 · 업체 · 메모.
+        「재고」는 상품 안 상단탭, 「명세서 발행」은 업체 안 상단탭,
+        「견적요청」은 메모 안 상단탭이다 (2026-09-17 우람님).
+     🔴 아래 탭칸 첫 칸 이름은 「상품」이다. 주소에 붙은 '#입고' 는 그 화면 **안** 상단탭이라 그대로 둔다. */
   var 탭칸 = [
-    { 이름: '입고', 아이콘: '상자', 주소: 'index.html#입고' },
+    { 이름: '홈',   아이콘: '집',   주소: '홈.html' },
+    { 이름: '상품', 아이콘: '화분', 주소: 'index.html#입고' },
     { 이름: '업체', 아이콘: '온실', 주소: '업체.html' },
     { 이름: '메모', 아이콘: '메모', 주소: '메모.html' }
   ];
   var 옆칸 = [
-    { 이름: '상품',      아이콘: '화분',   주소: 'index.html' },
-    { 이름: '업체',      아이콘: '온실',   주소: '업체.html' },
-    { 이름: '메모',      아이콘: '메모',   주소: '메모.html' },
-    { 이름: '견적 요청', 아이콘: '말풍선', 주소: '견적.html' }
+    { 이름: '홈',   아이콘: '집',   주소: '홈.html' },
+    { 이름: '상품', 아이콘: '화분', 주소: 'index.html' },
+    { 이름: '업체', 아이콘: '온실', 주소: '업체.html' },
+    { 이름: '메모', 아이콘: '메모', 주소: '메모.html' }
   ];
 
-  /* 지금: 탭칸 이름 하나. 넷에 없는 값('업체'·'소싱')이면 「더보기」가 켜지고 그 값이 시트로 넘어간다.
+  /* 안 읽은 쪽지 — 홈 화면이 없는 쪽(상품·업체·메모)에서도 세야 하므로 여기 둔다.
+     설정.업무본때 는 기기별 값이라 서버로 안 나간다(01-저장소). 자료가 없으면 조용히 0 이다. */
+  function 안읽은쪽지() {
+    try {
+      var 저 = ZG.저장소;
+      if (!저 || !저.키.업무) return 0;
+      var 본때 = Number(저.설정읽기().업무본때 || 0);
+      var 나 = ZG.사람 ? ZG.사람.나키() : '';
+      return 저.읽기(저.키.업무).filter(function (r) {
+        return r.종류 === '채팅' && (r.때 || 0) > 본때 && r.쓴이 !== 나;
+      }).length;
+    } catch (e) { return 0; }
+  }
+
+  /* 지금: 탭칸 이름 하나 (홈·상품·업체·메모).
      눌림(이름): true 를 돌려주면 그 화면이 제자리에서 처리한 것으로 보고 주소로 안 옮긴다.
      🔴 <nav> 를 돌려주기만 한다. 붙이는 것도, 높이를 재는 것도 부르는 쪽 몫이다(08b 가 잰다). */
   function 탭바(지금, 눌림) {
     var 바 = 만들기('nav', { class: 'ph-nav' });
-    var 안에있나 = 탭칸.some(function (t) { return t.이름 === 지금; });
     탭칸.forEach(function (t) {
       var b = 만들기('button', {
         type: 'button', class: t.이름 === 지금 ? 'on' : '',
         html: '<span class="ic">' + 아이콘(t.아이콘) + '</span>' + t.이름
       });
+      // 홈 칸에는 안 읽은 쪽지 수를 단다 (재고를 보고 있어도 산다 — 서버가 밀어 줄 때마다 다시 그린다)
+      if (t.이름 === '홈' && 지금 !== '홈') {
+        var n = 안읽은쪽지();
+        if (n > 0) b.appendChild(만들기('span', { class: 'tabdot', text: n > 99 ? '99+' : String(n) }));
+      }
       b.addEventListener('click', function () {
         햅틱();
         if (눌림 && 눌림(t.이름) === true) return;
@@ -333,12 +419,6 @@ window.ZG = window.ZG || {};
       });
       바.appendChild(b);
     });
-    var 더보기 = 만들기('button', {
-      type: 'button', class: 안에있나 ? '' : 'on',
-      html: '<span class="ic">' + 아이콘('점셋') + '</span>더보기'
-    });
-    더보기.addEventListener('click', function () { 햅틱(); 더보기시트(안에있나 ? '' : 지금); });
-    바.appendChild(더보기);
     return 바;
   }
 
@@ -373,6 +453,21 @@ window.ZG = window.ZG || {};
       만들기('img', { src: 'img/브랜드/캐리커쳐4인.png', alt: '' }),
       만들기('div', { class: 'say', text: '오늘도 잘 자라고 있습니다' })
     ]));
+    // 맨 아래 내 얼굴 — 누르면 프로필 · PC보기 · 로그아웃 (2026-09-17). 로그인 전에는 안 붙인다
+    var 사람 = ZG.사람;
+    if (사람 && 사람.나키()) {
+      var 나단추 = 만들기('button', { type: 'button', class: '내자리' }, [
+        사람.얼굴(사람.나키()),
+        만들기('span', { class: 't' }, [
+          만들기('span', { class: 'n', text: 사람.이름(사람.나키()) }),
+          만들기('span', { class: 'j', text: ((사람.하나(사람.나키()) || {}).직책 || '').trim()
+            ? (사람.하나(사람.나키()).직책 + ' · 프로필') : '프로필' })
+        ])
+      ]);
+      나단추.addEventListener('click', function () { 사람.내시트(); });
+      옆.appendChild(나단추);
+      if (ZG.메모자료) ZG.메모자료.서명걸기(나단추);
+    }
     return 옆;
   }
 
@@ -713,8 +808,9 @@ window.ZG = window.ZG || {};
     만들기: 만들기, 비우기: 비우기, 안전: 안전,
     콤마: 콤마, 숫자: 숫자, 오늘문자: 오늘문자,
     폰인가: 폰인가, 폰질의: 폰질의, 움직임끔: 움직임끔, PC보기: PC보기, PC보기인가: PC보기인가,
-    토스트: 토스트, 확인: 확인, 물음: 물음, 고르기: 고르기, 더보기시트: 더보기시트, 탭바: 탭바, 옆메뉴: 옆메뉴, 아이콘: 아이콘, 햅틱: 햅틱, 손대야열림: 손대야열림, 흔들기: 흔들기, 목록등장: 목록등장, 번쩍: 번쩍,
+    토스트: 토스트, 확인: 확인, 물음: 물음, 고르기: 고르기, 탭바: 탭바, 옆메뉴: 옆메뉴, 아이콘: 아이콘, 햅틱: 햅틱, 손대야열림: 손대야열림, 흔들기: 흔들기, 목록등장: 목록등장, 번쩍: 번쩍,
     탈출걸기: 탈출걸기, 탈출풀기: 탈출풀기,
+    쓸기붙이기: 쓸기붙이기, 쓸기단추: 쓸기단추, 방금끌었나: 방금끌었나, 열린줄인가: 열린줄인가, 열린줄잊기: 열린줄잊기,
     스테퍼: 스테퍼, 자동완성: 자동완성, 후보찾기: 후보찾기, 업체자동완성: 업체자동완성,
     조합안전입력: 조합안전입력
   };

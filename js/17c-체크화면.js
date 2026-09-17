@@ -11,28 +11,14 @@ window.ZG = window.ZG || {};
   var 저 = ZG.저장소, 키 = 저.키.메모;
 
   var 펼친것 = {};        // id → true. 카드를 눌러 상세를 펴 둔 것
-  var 열린줄닫기 = null;  // 쓸어서 단추가 나와 있는 줄을 닫는 함수. 한 번에 하나만 연다
-  var 방금끌었다 = false; // 쓸던 손가락이 뗀 자리에서 클릭이 한 번 더 온다 — 그걸 삼킨다
 
-  /* 쓸었을 때 나오는 단추 — 아이폰 메모장처럼 그림 위, 글씨 아래.
-     🔴 결 이름을 'edit' 로 두면 안 된다. 메모.css 의 `.edit` 는 본문 편집칸(흰 바탕·min-height 220px)이라
-        단추가 그걸 뒤집어쓰고 흰 덩어리가 되어 사라진다 (2026-08-26 우람님: 수정 단추가 안 보였다) */
+  /* 🔴 쓸기(쓸기붙이기 · 쓸기단추 · 열린줄 · 방금끌었나)는 04-공통UI 로 올라갔다 (2026-09-17).
+     메모 카드도 같은 몸짓을 쓰는데, 두 벌을 들면 「한 번에 한 줄만 열린다」가 화면마다 따로 놀아
+     체크리스트 줄과 메모 카드가 같이 열린 채로 남는다. */
   var 그림 = {
     수정: '<path d="M4 20.5h4L20.2 8.3a2 2 0 0 0 0-2.8l-1.7-1.7a2 2 0 0 0-2.8 0L3.5 16v4.5z"/><path d="M14.5 6.2l3.3 3.3"/>',
     삭제: '<path d="M4 6.5h16"/><path d="M9.5 6.5V4.8a1.3 1.3 0 0 1 1.3-1.3h2.4a1.3 1.3 0 0 1 1.3 1.3v1.7"/><path d="M6.6 6.5l.9 13.2a1.3 1.3 0 0 0 1.3 1.3h6.4a1.3 1.3 0 0 0 1.3-1.3l.9-13.2"/>'
   };
-  function 쓸기단추(이름, 결, 누름) {
-    var b = 만들기('button', { type: 'button', class: 결, 'aria-label': 이름 }, [
-      만들기('span', {
-        class: 'ic',
-        html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
-              'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + 그림[이름] + '</svg>'
-      }),
-      만들기('span', { class: 'lb', text: 이름 })
-    ]);
-    b.addEventListener('click', 누름);
-    return b;
-  }
 
   function 두자리(n) { return (n < 10 ? '0' : '') + n; }
   function 오늘() {
@@ -43,8 +29,18 @@ window.ZG = window.ZG || {};
 
   /* ══════════ 자료 ══════════ */
 
+  /* 🔴 체크리스트는 각자 제 것만 본다 (2026-09-17 우람님).
+     쓴이가 없는 줄은 모두에게, 있는 줄은 그 사람에게만 — 17a 목록()과 같은 규칙이다.
+     나키()가 비면(서버 꺼짐) 거르개가 잠들어 지금까지와 똑같이 돈다. */
+  function 나() { return (ZG.사람 && ZG.사람.나키()) || ''; }
+
   function 전부() {
-    return 저.읽기(키).filter(function (r) { return r.종류 === '체크'; });
+    var 나메일 = 나();
+    return 저.읽기(키).filter(function (r) {
+      if (r.종류 !== '체크') return false;
+      if (!나메일) return true;
+      return !r.쓴이 || r.쓴이 === 나메일;
+    });
   }
 
   function 목록(달) {
@@ -69,10 +65,13 @@ window.ZG = window.ZG || {};
 
   function 넣기(제목, 상세) {
     var 지금 = Date.now();
-    저.덧붙이기(키, {
+    var 줄 = {
       id: 새id(), 종류: '체크', 제목: 제목, 상세: 상세 || '',
       완료: false, 날짜: 오늘(), 만든때: 지금, 고친때: 지금
-    });
+    };
+    var 나메일 = 나();
+    if (나메일) 줄.쓴이 = 나메일;   // 새로 만드는 줄에만 찍는다
+    저.덧붙이기(키, 줄);
   }
 
   function 고치기(id, 변경) {
@@ -131,49 +130,6 @@ window.ZG = window.ZG || {};
     setTimeout(function () { 제목칸.focus(); 제목칸.select(); }, 20);
   }
 
-  /* ══════════ 쓸어서 단추 내기 (아이폰 메모장) ══════════ */
-  /* 🔴 세로로 굴리는 손가락을 가로로 오해하면 목록을 못 굴리신다 — |dx| 가 |dy| 보다 클 때만 잡는다 */
-  function 쓸기붙이기(카드, 폭) {
-    var 시작x = null, 시작y = null, 끌기 = false, 열림 = false;
-
-    function 놓기(값) {
-      열림 = 값;
-      카드.style.transition = '';
-      카드.style.transform = 값 ? 'translateX(-' + 폭 + 'px)' : '';
-      열린줄닫기 = 값 ? 닫기 : (열린줄닫기 === 닫기 ? null : 열린줄닫기);
-    }
-    function 닫기() { 놓기(false); }
-
-    카드.addEventListener('pointerdown', function (e) {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      if (e.target.tagName === 'INPUT') return;   // 체크박스를 누른 손가락은 쓸기가 아니다
-      시작x = e.clientX; 시작y = e.clientY; 끌기 = false;
-    });
-    카드.addEventListener('pointermove', function (e) {
-      if (시작x == null) return;
-      var dx = e.clientX - 시작x, dy = e.clientY - 시작y;
-      if (!끌기) {
-        if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(dy)) return;
-        끌기 = true;
-        try { 카드.setPointerCapture(e.pointerId); } catch (err) { /* 무시 */ }
-        if (열린줄닫기 && 열린줄닫기 !== 닫기) 열린줄닫기();
-        카드.style.transition = 'none';
-      }
-      카드.style.transform = 'translateX(' + Math.min(0, Math.max(-폭, (열림 ? -폭 : 0) + dx)) + 'px)';
-    });
-    function 끝(e) {
-      if (시작x == null) return;
-      var dx = e.clientX - 시작x;
-      시작x = null;
-      if (!끌기) return;
-      끌기 = false;
-      방금끌었다 = true;
-      놓기(열림 ? dx < 40 : dx < -50);
-    }
-    ['pointerup', 'pointercancel'].forEach(function (t) { 카드.addEventListener(t, 끝); });
-    return 닫기;
-  }
-
   /* ══════════ 카드 ══════════ */
 
   function 줄만들기(r, 달) {
@@ -200,26 +156,26 @@ window.ZG = window.ZG || {};
       체크, 만들기('div', { class: 'body' }, 몸조각)
     ]);
 
-    var 고침 = 쓸기단추('수정', 'ed', function () {
+    var 고침 = u.쓸기단추('수정', 'ed', function () {
       할일창(r, function (값) { 고치기(r.id, 값); ZG.메모앱.다시그리기(); });
-    });
-    var 삭제 = 쓸기단추('삭제', 'del', function () {
+    }, 그림.수정);
+    var 삭제 = u.쓸기단추('삭제', 'del', function () {
       u.확인({ 제목: '「' + (r.제목 || '') + '」을 지울까요?', 확인글: '지우기', 위험: true }, function (예) {
         if (!예) return;
         저.지우기(키, r.id);
-        열린줄닫기 = null;
+        u.열린줄잊기();
         ZG.메모앱.다시그리기();
       });
-    });
+    }, 그림.삭제);
 
-    var 줄 = 만들기('div', { class: 'ckrow' }, [
-      만들기('div', { class: 'ckacts' }, [고침, 삭제]), 카드
+    var 줄 = 만들기('div', { class: '쓸줄' }, [
+      만들기('div', { class: '쓸단추' }, [고침, 삭제]), 카드
     ]);
-    var 닫기 = 쓸기붙이기(카드, 152);   // 단추 두 개 × 76px — 메모.css 의 .ckacts button 너비와 맞춰 둔다
+    var 닫기 = u.쓸기붙이기(카드, 152);   // 단추 두 개 × 76px — 공통.css 의 .쓸단추 button 너비와 맞춰 둔다
 
     카드.addEventListener('click', function () {
-      if (방금끌었다) { 방금끌었다 = false; return; }
-      if (열린줄닫기 === 닫기) { 닫기(); return; }   // 단추가 나와 있으면 먼저 닫는다
+      if (u.방금끌었나()) return;
+      if (u.열린줄인가(닫기)) { 닫기(); return; }   // 단추가 나와 있으면 먼저 닫는다
       if (!r.상세) return;
       펼친것[r.id] = !펼친것[r.id];
       카드.classList.toggle('open', 펼친것[r.id]);
@@ -242,7 +198,7 @@ window.ZG = window.ZG || {};
   }
 
   function 그리기(자리) {
-    열린줄닫기 = null;
+    u.열린줄잊기();
     var 달 = ZG.메모앱.달();
     var 줄들 = 목록(달);
 
