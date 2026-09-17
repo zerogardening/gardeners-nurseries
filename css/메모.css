@@ -336,22 +336,24 @@
 }
 .wbar .send{background:var(--color-accent); border-color:var(--color-accent-dark); color:var(--color-on-accent); box-shadow:var(--shadow-btn-main)}
 .wbar .inp{flex:1; min-width:0; resize:none; line-height:1.45; padding:9px 12px}
-/* ══ 채팅은 카톡처럼 화면을 다 쓴다 (2026-09-17 우람님) ══
-   🔴 100dvh 다. 100vh 는 아이폰에서 키보드가 올라와도 **안 줄어들어** 입력칸이 키보드 밑에 깔린다.
-      dvh 는 실제로 보이는 높이라 키보드만큼 줄어든다. 못 알아듣는 판을 위해 vh 를 먼저 둔다. */
+/* ══ 채팅 (2026-09-17 우람님 — 네 번 고쳐 여기 닿았다) ══
+   짜임은 셋으로 못 박는다. 셋 다 따로따로 재어 확인한 것이다.
+
+   ① 껍데기를 화면에 **붙박이(position:fixed)** 로 둔다.
+      그러면 문서에 높이가 없어 **페이지가 아예 안 굴러간다.**
+      굴러가지 않으면 아이폰이 화면을 밀어 올릴 수도 없다 — 날아다니던 것이 여기서 끝난다.
+   ② 굴러가는 것은 **피드 칸 안**뿐이다. 머리줄·상단탭·공지·입력줄은 제자리에 붙어 있는다.
+   ③ 키보드가 덮은 만큼은 19-홈 이 재어 height 로 넣는다. 그런데 그 값이 틀려도 괜찮다 —
+      🔴 아래 min-height 가 **인라인 height 를 이긴다.** 320 아래로는 안 내려간다.
+         대화 칸이 0 이 되는 일이 구조적으로 불가능하다. */
 .ph-shell.홈셸{min-height:100vh; min-height:100dvh}
-.ph-shell.홈셸.채팅중{height:100dvh; min-height:0; overflow:hidden}
-/* 🔴🔴 못 넘는 바닥. **CSS 의 min-height 는 인라인 height 를 이긴다** —
-   19-홈 이 키보드 높이를 잘못 재어 90px 같은 값을 박아도, 그려지는 높이는 320 아래로 안 내려간다.
-   두 번이나 이 자리에서 대화 칸이 0 이 되고 입력줄만 화면 꼭대기에 남았다 (2026-09-17 우람님).
-   JS 쪽 안전장치(기준높이·절대바닥)는 그대로 두되, 마지막 문은 여기 CSS 로 잠근다 —
-   재는 코드가 무슨 값을 내놓든 화면이 무너지지 않는다. */
-.ph-shell.홈셸.채팅중{min-height:320px; max-height:100dvh}
-/* 🔴 min-height:0 이 없으면 .ph-body 가 **안 줄어든다**.
-   플렉스 칸의 기본값이 min-height:auto 라 내용만큼 부풀고, 셸의 overflow:hidden 이 그걸 잘라낸다.
-   그러면 피드는 굴릴 칸이 되지 못하고(제 높이가 내용과 같아 넘칠 일이 없다),
-   입력줄 아래로 지난 메시지가 잘린 채 깔리고 더는 내려갈 수도 없다 (2026-09-17 우람님 화면).
-   재 보니 창 793 인데 본문이 1735 였다. 이 한 줄이 피드를 진짜 굴림칸으로 만든다. */
+.ph-shell.홈셸.채팅중{
+  position:fixed; top:0; left:0; right:0;
+  height:100dvh; min-height:320px; max-height:100dvh;
+  overflow:hidden;
+}
+/* 🔴 min-height:0 이 없으면 .ph-body 가 **안 줄어든다**(플렉스 칸 기본값 min-height:auto).
+   내용만큼 부풀어 잘리고, 피드는 굴림칸이 되지 못한다 — 입력줄 아래로 지난 말이 깔린다 */
 .ph-shell.채팅중 .ph-body{min-height:0}
 /* 🔴 탭바는 채팅에서도 있는다 — 입력줄은 그 위에 앉는다(아래 .wbar 기본 규칙).
    키보드가 올라온 동안에만 탭바가 숨고 입력줄이 맨 아래로 내려간다 */
@@ -370,17 +372,14 @@
 /* 키보드가 올라오면 ↑ 를 뺀다 — 키보드의 ↵ 가 보내기다 (2026-09-17 우람님).
    사진 붙이는 ＋ 는 남는다 */
 .ph-shell.키보드 .wbar .send{display:none}
-/* 🔴 키보드가 올라와도 입력줄은 **흐름 그대로** 맨 아래에 둔다.
-   껍데기 높이를 19-홈 의 높이맞춤()이 줄여 주므로 제자리가 곧 키보드 바로 위다.
-   position:fixed 로 띄우면 아이폰이 굴릴 때 보이는 창을 흔들어 입력줄이 날아다닌다 */
+/* 키보드가 올라오면 탭바가 없으니 입력줄이 맨 아래다 */
 .ph-shell.키보드 .wbar{bottom:0}
 
 /* 폰은 아래 탭바 위에 앉는다.
    🔴 .ph-body 의 넉넉한 아래 여백(96px)은 팹이 쓰는 것이다 — 입력줄이 있는 화면에서는 그만큼 뜬다.
       홈 채팅은 여백을 줄이고, 피드가 남는 높이를 먹어 입력줄을 바닥으로 민다. */
 .ph-shell .wbar{bottom:var(--탭바높이)}
-/* 폰에서는 피드 칸 **안에서만** 굴린다 — 머리줄·상단탭·공지·입력줄은 제자리에 붙어 있는다.
-   이래야 방금 보낸 말이 늘 입력칸 바로 위에 있다 */
+/* 폰에서는 피드 칸 안에서만 굴린다 — 그 밖은 다 제자리다 */
 .ph-shell .wfeed{flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:var(--space-sm)}
 .ph-body.홈채팅{padding-bottom:var(--탭바높이)}
 .pc-main .wbar{max-width:700px; border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); margin-top:var(--space-lg)}
