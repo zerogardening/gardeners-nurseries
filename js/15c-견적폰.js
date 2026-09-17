@@ -125,10 +125,6 @@ window.ZG = window.ZG || {};
       목록으로();
     });
     칸.appendChild(저장);
-    칸.appendChild(만들기('div', {
-      class: 'noteline',
-      html: '등록하면 상태는 <b>「요청」</b>으로 시작합니다. 견적을 드린 뒤 목록에서 <b>완료</b>로 바꿉니다.'
-    }));
   }
 
   /* ── 상세 ── */
@@ -175,11 +171,6 @@ window.ZG = window.ZG || {};
       });
     });
     칸.appendChild(삭제);
-
-    칸.appendChild(만들기('div', {
-      class: 'noteline',
-      html: '고객명·요청일자를 고치시려면 <b>PC화면</b>에서 여시면 한 화면에 다 나옵니다.'
-    }));
   }
 
   /* 누르는 즉시 저장한다 — 장갑 낀 손을 위해 드롭다운을 안 쓴다 (§5)

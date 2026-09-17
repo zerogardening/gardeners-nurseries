@@ -301,11 +301,6 @@ table.items .xbtn{
 }
 .grandline .k{font-size:var(--font-sm); color:var(--color-text-muted); font-weight:var(--weight-semibold)}
 .grandline .v{font-size:var(--font-5xl); font-weight:var(--weight-bold); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
-.noteline{
-  font-size:var(--font-xs); color:var(--color-text-muted); background:var(--color-bg);
-  border:var(--border-width) dashed var(--color-border); border-radius:var(--radius-md);
-  padding:var(--space-md) var(--space-lg); line-height:1.6;
-}
 .addbtn{
   height:44px; border-radius:var(--radius-md); background:var(--color-surface);
   border:var(--border-width) dashed var(--color-border); color:var(--color-accent-dark);

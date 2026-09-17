@@ -129,10 +129,6 @@ window.ZG = window.ZG || {};
       var 저장단추 = 만들기('button', { class: 'ph-save', type: 'button', text: '저장하고 다음 등록' });
       저장단추.addEventListener('click', 저장);
       부모.appendChild(저장단추);
-      부모.appendChild(만들기('div', {
-        class: 'noteline',
-        html: '사업자번호·입금계좌·거래조건처럼 긴 항목은 <b>PC화면</b>에서 채우시면 편합니다.'
-      }));
       return;
     }
 

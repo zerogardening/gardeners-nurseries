@@ -104,9 +104,6 @@ window.ZG = window.ZG || {};
         목록.appendChild(카드);
       });
       표칸.appendChild(목록);
-      표칸.appendChild(만들기('div', {
-        class: 'noteline', html: '카드를 누르면 그 명세서를 <b>작성 탭으로 다시 불러옵니다.</b>'
-      }));
       u.목록등장(목록.children);
       return;
     }

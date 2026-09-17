@@ -90,11 +90,6 @@ tr.editing td{background:var(--color-accent-bg)}
   background:var(--color-accent-bg); border:var(--border-width) solid var(--color-accent-border);
   border-radius:var(--radius-pill); padding:var(--pad-tag); text-decoration:none;
 }
-.noteline{
-  font-size:var(--font-xs); color:var(--color-text-muted); background:var(--color-bg);
-  border:var(--border-width) dashed var(--color-border); border-radius:var(--radius-md);
-  padding:var(--space-md) var(--space-lg); line-height:1.6;
-}
 .addbtn{
   height:44px; border-radius:var(--radius-md); background:var(--color-surface);
   border:var(--border-width) dashed var(--color-border); color:var(--color-accent-dark);
