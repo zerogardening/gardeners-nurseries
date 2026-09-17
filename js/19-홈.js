@@ -17,7 +17,7 @@ window.ZG = window.ZG || {};
   var 사람 = ZG.사람;
   var 요일 = ['일', '월', '화', '수', '목', '금', '토'];
 
-  var 뿌리, 껍데기, 본문, 피드칸, 목록칸, 입력칸;
+  var 뿌리, 껍데기, 본문, 피드칸, 목록칸, 입력칸, 입력줄칸;
   var 탭 = '채팅';            // '채팅' | '업무'
   var 달, 고른날;
   var 거르개 = '';            // '' | '내' | 사람 메일
@@ -162,10 +162,8 @@ window.ZG = window.ZG || {};
     입력칸.value = '';
     입력칸.style.height = '';
     피드다시(true);            // 내가 보낸 것은 늘 따라 내려간다
-    /* 🔴 여기서 focus() 를 부르지 않는다 (2026-09-17 우람님: 보내면 화면이 저 멀리 날아간다).
-       엔터로 보낼 때 커서는 이미 이 칸에 있다. 그런데도 다시 부르면 아이폰이
-       「이 칸을 보이게 하라」며 화면을 굴리고, 그 김에 키보드를 내렸다 올리기도 한다.
-       피드만 갈았으므로 이 마디는 그대로 살아 있다 — 커서도 그대로다. */
+    /* 🔴 폰에서는 focus() 를 다시 부르지 않는다. 엔터로 보낼 때 커서는 이미 이 칸에 있고,
+       그런데도 다시 부르면 아이폰이 「이 칸을 보이게 하라」며 화면을 굴린다 */
     if (document.activeElement !== 입력칸 && !u.폰인가()) 입력칸.focus();
   }
 
@@ -313,11 +311,14 @@ window.ZG = window.ZG || {};
 
   function 입력줄() {
     var 통 = 만들기('div', { class: 'wbar' });
+    입력줄칸 = 통;
     /* ＋ 사진 붙이기. 🔴 올리는 일은 17a-메모자료 것을 그대로 쓴다 —
        줄이기(긴 변 1600 · JPEG 0.8) · 통(memo) · 서명 URL 까지 이미 다 있다. 두 벌을 만들지 않는다 */
     var 사진칸 = 만들기('input', { type: 'file', accept: 'image/*', style: 'display:none' });
     var 더 = 만들기('button', { class: 'plus', type: 'button', text: '＋', 'aria-label': '사진 붙이기' });
-    더.addEventListener('mousedown', function (e) { e.preventDefault(); });   // 커서가 안 빠지게
+    ['mousedown', 'pointerdown'].forEach(function (t) {   // 커서가 안 빠지게
+      더.addEventListener(t, function (e) { e.preventDefault(); });
+    });
     더.addEventListener('click', function () { 사진칸.click(); });
     사진칸.addEventListener('change', function () {
       var f = 사진칸.files && 사진칸.files[0];
@@ -351,9 +352,9 @@ window.ZG = window.ZG || {};
     입력칸.addEventListener('blur', function () { 키보드(false); });
 
     var 보냄 = 만들기('button', { class: 'send', type: 'button', text: '↑', 'aria-label': '보내기' });
-    /* 🔴 커서가 빠지면 키보드가 내려갔다 올라오며 화면이 통째로 튄다 — 눌러도 커서를 안 놓게 막는다.
-       아이폰은 mousedown 이 안 뜨거나 늦게 뜨므로 pointerdown 도 같이 막는다.
-       🔴 touchstart 는 막지 않는다 — 막으면 아이폰에서 click 자체가 안 뜬다(단추가 죽는다). */
+    /* 🔴 커서가 빠지면 키보드가 내려갔다 올라오며 화면이 통째로 튄다 — 눌러도 안 놓게 막는다.
+       아이폰은 mousedown 이 안 뜨거나 늦게 뜨므로 pointerdown 도 막는다.
+       🔴 touchstart 는 막지 않는다 — 막으면 아이폰에서 click 이 안 떠 단추가 죽는다 */
     ['mousedown', 'pointerdown'].forEach(function (t) {
       보냄.addEventListener(t, function (e) { e.preventDefault(); });
     });
@@ -743,17 +744,15 @@ window.ZG = window.ZG || {};
      통째로 다시 그리면 치던 문장과 한글 조합이 통째로 날아간다. 이것이 01b 의 예외를 떠받친다. */
   function 피드다시(바닥으로) {
     if (!목록칸) { 다시그리기(); return; }
-    /* 🔴 굴러가는 것은 **창**이다. 피드는 제 굴림칸이 아니다(메모.css 참조) —
-       그래서 바닥인지도 창으로 잰다. 옛 글을 읽는 중이면 끌어내리지 않는다 */
-    /* 굴러가는 것은 창이다 — 바닥인지도 창으로 잰다 */
-    var 바닥가까이 = 바닥으로 === true ||
-      (document.documentElement.scrollHeight - window.scrollY - window.innerHeight < 120);
+    /* 옛 글을 읽는 중이면 끌어내리지 않는다. 바닥에서 80px 안에 있을 때만 따라 내려간다 */
+    var 바닥가까이 = 바닥으로 === true || !피드칸 ||
+      (피드칸.scrollHeight - 피드칸.scrollTop - 피드칸.clientHeight < 80);
 
     if (탭 === '채팅') {
       var 띠칸 = 뿌리.querySelector('.notice-자리');
       if (띠칸) { u.비우기(띠칸); var 띠 = 공지띠(); if (띠) 띠칸.appendChild(띠); }
       채팅그리기(목록칸);
-      if (바닥가까이) 바닥으로내리기();
+      if (바닥가까이 && 피드칸) 피드칸.scrollTop = 피드칸.scrollHeight;
     } else {
       업무그리기(목록칸);
     }
@@ -828,48 +827,49 @@ window.ZG = window.ZG || {};
      🔴 visualViewport 를 재지 않고 focus/blur 로만 판단한다 — 아이폰은 칸에 커서가 들어간
         그 순간 키보드를 올리므로 이걸로 충분하고, 재는 쪽은 기기마다 어긋난다.
      🔴 화면을 다시 그리지 않는다. 결(class)만 붙였다 뗀다 — 치던 글은 그대로 있다. */
-  /* ── 키보드가 올라오면 위쪽을 접는다 ──
-     머리줄 · 안읽음줄 · 상단탭 · 공지띠 · 아래 탭바를 숨겨 대화와 입력칸만 남긴다.
-     🔴 화면을 다시 그리지 않는다. 결(class)만 붙였다 뗀다 — 치던 글은 그대로 있다.
+  /* ── 입력줄을 키보드 바로 위에 붙인다 ──
+     🔴 100dvh 는 키보드를 못 본다(규격상 가상 키보드는 dvh 에 안 들어간다).
+        그래서 키보드가 올라오면 입력줄이 그 아래로 깔리거나 붕 떠 보인다.
+     🔴 껍데기 높이를 건드리는 방식은 쓰지 않는다 — 한 번 해 봤더니 키보드가 올라오는
+        도중에 잰 값이 박혀 입력줄이 화면 꼭대기로 튀어 올랐다 (2026-09-17 우람님 화면).
+     지금 방식: 입력줄만 position:fixed 로 띄우고, 키보드가 가린 높이만큼 bottom 을 민다.
+        가린 높이 = 창 높이 − 보이는 높이 − 밀려난 만큼. 틀어져도 입력줄 한 줄만 어긋난다. */
+  var 보임칸 = window.visualViewport || null;
 
-     🔴🔴 **높이를 재서 박는 짓은 하지 않는다** (2026-09-17, 세 번 고쳐 보고 접었다).
-        visualViewport 로 남은 높이를 재어 껍데기에 넣어 봤는데,
-        홈화면 앱에서는 잰 값이 수시로 어긋나 대화 칸이 0 이 되고
-        입력줄만 화면 꼭대기에 남았다. 안전장치를 JS 두 겹 · CSS 한 겹으로 쳐도 계속 났다.
-        재는 것을 통째로 걷는다. 페이지가 그냥 굴러가게 두면
-        **아이폰이 알아서 입력칸을 키보드 위로 올려 준다** — 우리가 계산할 일이 없다.
-        대신 입력줄이 키보드에서 조금 뜰 수 있다. 날아다니는 것보다 낫다. */
-  /* 맨 아래로. 굴러가는 것은 **창**이다 — 피드는 제 굴림칸이 아니다(메모.css 참조).
-
-     🔴🔴 키보드가 올라와 있으면 **아무것도 하지 않는다.** 이것이 「보내면 화면이 날아가던」 것의 뿌리였다.
-        키보드가 뜨면 아이폰이 입력칸이 보이도록 스스로 자리를 잡아 준다.
-        그 상태에서 우리가 「문서 맨 아래로」 굴리면, 그 맨 아래는
-        아이폰이 굴릴 자리로 깔아 둔 빈 여백(padding-bottom:55vh)의 끝이다 —
-        화면이 그만큼 위로 솟아 입력줄만 꼭대기에 남는다. 우람님이 본 그 모양이다.
-        키보드가 없을 때만 내린다. 있을 때는 아이폰에 맡긴다. */
-  function 바닥으로내리기() {
-    if (껍데기 && 껍데기.classList.contains('키보드')) return;
-    function 내리기() { window.scrollTo(0, document.documentElement.scrollHeight); }
-    내리기();
-    setTimeout(내리기, 60);
-    setTimeout(내리기, 220);
+  /* 🔴 여기가 「스크롤 업 최대로 하면 입력칸이 날아다닌다」의 자리였다 (2026-09-17 우람님).
+     까닭 둘 — 둘 다 이 함수를 **굴릴 때마다** 부르던 데서 왔다.
+       ① offsetTop 은 아이폰이 굴릴 때(특히 끝에서 튕길 때) 쉴 새 없이 바뀐다.
+          그때마다 bottom 을 다시 박으니 입력줄이 손가락을 따라 오르내렸다.
+       ② 다시 계산할 때마다 피드를 바닥으로 끌어내려, 위로 올리려는 손을 도로 끌어내렸다.
+     그래서 이제 **크기가 바뀔 때(resize)만** 잰다. 굴리는 것(scroll)은 안 듣는다.
+     바닥으로 내리는 것도 여기서 안 한다 — 키보드가 처음 올라올 때 한 번만 한다. */
+  function 높이맞춤() {
+    if (!껍데기 || !입력줄칸) return;
+    if (!보임칸) { 입력줄칸.style.bottom = ''; return; }
+    var 가림 = window.innerHeight - 보임칸.height - 보임칸.offsetTop;
+    입력줄칸.style.bottom = Math.max(0, Math.round(가림)) + 'px';
   }
 
-  /* 🔴 키보드 높이를 재지 않는다. 껍데기에 손도 대지 않는다.
-     위쪽을 접는 결(class)만 붙였다 뗀다 — 나머지는 아이폰이 알아서 굴려 준다.
-     굴릴 자리는 메모.css 의 padding-bottom:55vh 가 만들어 준다. */
   function 키보드(켬) {
     if (!껍데기) return;
+    /* 🔴 이미 그 상태면 아무것도 안 한다 — 두 번 걸리면 오르내리는 찰나의 값이 박혀 튄다 */
     if (!!켬 === 껍데기.classList.contains('키보드')) return;
     껍데기.classList.toggle('키보드', !!켬);
-    // 🔴 올라올 때는 굴리지 않는다 — 아이폰이 잡아 준 자리를 망가뜨린다(위 주석).
-    //    내려간 뒤에만 마지막 말이 보이게 다시 내린다
-    if (!켬) setTimeout(바닥으로내리기, 200);
+    if (켬) {
+      if (보임칸) 보임칸.addEventListener('resize', 높이맞춤);   // 🔴 scroll 은 안 듣는다 (위 주석)
+      높이맞춤();
+      // 키보드가 다 올라온 뒤에 한 번 더 — 올라오는 동안 잰 높이는 아직 옛것이다
+      setTimeout(높이맞춤, 80);
+      setTimeout(높이맞춤, 300);
+    } else {
+      if (보임칸) 보임칸.removeEventListener('resize', 높이맞춤);
+      if (입력줄칸) 입력줄칸.style.bottom = '';   // 제자리로 되돌린다
+    }
   }
 
   function 다시그리기() {
     u.비우기(뿌리);
-    입력칸 = null; 목록칸 = null; 피드칸 = null;
+    입력칸 = null; 목록칸 = null; 피드칸 = null; 입력줄칸 = null;
     마지막폰 = u.폰인가();
     if (마지막폰) 폰뼈대(); else PC뼈대();
 
