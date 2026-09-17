@@ -162,7 +162,11 @@ window.ZG = window.ZG || {};
     입력칸.value = '';
     입력칸.style.height = '';
     피드다시(true);            // 내가 보낸 것은 늘 따라 내려간다
-    입력칸.focus();            // 🔴 피드만 갈았으므로 커서가 살아 있다
+    /* 🔴 여기서 focus() 를 부르지 않는다 (2026-09-17 우람님: 보내면 화면이 저 멀리 날아간다).
+       엔터로 보낼 때 커서는 이미 이 칸에 있다. 그런데도 다시 부르면 아이폰이
+       「이 칸을 보이게 하라」며 화면을 굴리고, 그 김에 키보드를 내렸다 올리기도 한다.
+       피드만 갈았으므로 이 마디는 그대로 살아 있다 — 커서도 그대로다. */
+    if (document.activeElement !== 입력칸 && !u.폰인가()) 입력칸.focus();
   }
 
   /* 사진 한 장을 올려 한 줄로 보낸다. 치고 있던 글이 있으면 같이 실린다 */
@@ -347,8 +351,12 @@ window.ZG = window.ZG || {};
     입력칸.addEventListener('blur', function () { 키보드(false); });
 
     var 보냄 = 만들기('button', { class: 'send', type: 'button', text: '↑', 'aria-label': '보내기' });
-    /* 🔴 mousedown 을 막아야 입력칸에서 커서가 안 빠진다 — 빠지면 키보드가 내려갔다 올라오며 화면이 튄다 */
-    보냄.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    /* 🔴 커서가 빠지면 키보드가 내려갔다 올라오며 화면이 통째로 튄다 — 눌러도 커서를 안 놓게 막는다.
+       아이폰은 mousedown 이 안 뜨거나 늦게 뜨므로 pointerdown 도 같이 막는다.
+       🔴 touchstart 는 막지 않는다 — 막으면 아이폰에서 click 자체가 안 뜬다(단추가 죽는다). */
+    ['mousedown', 'pointerdown'].forEach(function (t) {
+      보냄.addEventListener(t, function (e) { e.preventDefault(); });
+    });
     보냄.addEventListener('click', 보내기);
 
     통.appendChild(더); 통.appendChild(사진칸); 통.appendChild(입력칸); 통.appendChild(보냄);
@@ -845,12 +853,14 @@ window.ZG = window.ZG || {};
 
   function 키보드(켬) {
     if (!껍데기) return;
+    /* 🔴 이미 그 상태면 아무것도 안 한다. 다시 재면 키보드가 오르내리는 찰나의 값이 박혀
+       껍데기가 늘었다 줄며 화면이 튄다 */
+    if (!!켬 === 껍데기.classList.contains('키보드')) return;
     껍데기.classList.toggle('키보드', !!켬);
     if (켬) {
-      if (보임칸) {
-        보임칸.addEventListener('resize', 높이맞춤);
-        보임칸.addEventListener('scroll', 높이맞춤);
-      }
+      /* 🔴 resize 만 듣는다. scroll 은 아이폰이 굴릴 때마다 뜨는데,
+         그때마다 높이를 다시 박으면 화면이 잘게 튄다. 키보드 높이는 resize 로만 바뀐다 */
+      if (보임칸) 보임칸.addEventListener('resize', 높이맞춤);
       높이맞춤();
       // 키보드가 다 올라온 뒤에 한 번 더 — 올라오는 동안 잰 높이는 아직 옛것이다.
       // 바닥으로 내리는 것도 여기서만 한다(높이맞춤 안에서 하면 굴릴 때마다 끌려 내려간다)
@@ -858,10 +868,7 @@ window.ZG = window.ZG || {};
       setTimeout(바닥으로, 80);
       setTimeout(바닥으로, 300);
     } else {
-      if (보임칸) {
-        보임칸.removeEventListener('resize', 높이맞춤);
-        보임칸.removeEventListener('scroll', 높이맞춤);
-      }
+      if (보임칸) 보임칸.removeEventListener('resize', 높이맞춤);
       껍데기.style.height = '';   // dvh 로 되돌린다
     }
   }
