@@ -219,6 +219,16 @@ window.ZG = window.ZG || {};
       /* 🔴 표 하나가 넘어져도 나머지가 같이 죽지 않게 — Promise.all 이 통째로 거부되면
          다른 표도 안 내려오고 보내기 큐도 안 깨어난다 (8단계 설계 §5-3) */
       .catch(function (e) {
+        /* 🔴 「그런 표가 없다」는 고장이 아니라 **아직 안 만든 것**이다 (2026-09-17 우람님).
+           새 표를 더한 판을 올리면, 설치 SQL 을 다시 돌리기 전까지는 반드시 이 자리를 지난다.
+           그때 빨간 경고를 띄우면 멀쩡한 앱이 고장 난 것처럼 보인다.
+           조용히 넘기고 콘솔에만 적는다 — 표를 만들면 저절로 받아진다.
+           (PostgREST 는 42P01 / PGRST205 로 답한다) */
+        var 코드 = String((e && (e.code || e.message)) || '');
+        if (/42P01|PGRST205|does not exist|Could not find the table/i.test(코드)) {
+          console.info('아직 없는 표라 건너뜁니다 — ' + 표 + ' (설치/표만들기.sql 을 한 번 더 돌리면 됩니다)');
+          return;
+        }
         서버.경고.push(표 + ' 를 못 받았습니다 (' + (e.message || e) + ')');
       });
     }).concat([
