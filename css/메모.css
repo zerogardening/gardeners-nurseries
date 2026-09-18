@@ -507,6 +507,9 @@
 }
 .할일칸{line-height:1.6; min-height:170px; resize:vertical}
 
+/* 날짜 칸은 글자만큼만 — 한 줄 가득 늘리면 혼자 길어 보인다 (2026-09-18 우람님) */
+.날짜칸{width:auto; align-self:flex-start; max-width:100%; text-align:left}
+
 /* 새 종류 창의 색 고르개 */
 .색줄{display:flex; gap:var(--space-sm); flex-wrap:wrap}
 .색알{

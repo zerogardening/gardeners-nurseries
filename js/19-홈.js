@@ -563,7 +563,7 @@ window.ZG = window.ZG || {};
     var 머리 = 만들기('h4', { text: (있던것 ? '업무 고치기' : '새 업무') + ' · ' + 날글(날) });
     var 날칸 = null;
     if (채팅줄것) {
-      날칸 = 만들기('input', { class: 'inp num', type: 'date', value: 날 });
+      날칸 = 만들기('input', { class: 'inp 날짜칸', type: 'date', value: 날 });
       날칸.addEventListener('change', function () {
         if (!날칸.value) { 날칸.value = 날; return; }   // 비워 두면 못 잡는다 — 되돌린다
         날 = 날칸.value;
