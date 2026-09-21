@@ -112,15 +112,14 @@ window.ZG = window.ZG || {};
   function 문자내용(줄들, 받는곳, 출고일, 계좌) {
     var 총 = 줄들.reduce(function (a, r) { return a + r.수량 * (Number(r.단가) || 0); }, 0);
     var 본문 = '🌱 [정원사의 널서리]\n' +
-      (받는곳 ? 받는곳 + ' 님 출고 안내 📦' : '출고 안내 📦') + '\n\n' +
+      (받는곳 ? 받는곳 + ' 님 출고 안내' : '출고 안내') + '\n\n' +
       줄들.map(function (r) {
         var 단가 = Number(r.단가) || 0;
         return '· ' + r.유통명 + (r.규격 ? ' ' + r.규격 : '') + '\n' +
           u.콤마(r.수량) + '주X' + u.콤마(단가) + '원 = ' + u.콤마(r.수량 * 단가) + '원';
       }).join('\n\n') +
-      '\n\n합계 💰 ' + u.콤마(총) + '원';
-    if (계좌) 본문 += '\n\n🏦 입금계좌\n' + 계좌;
-    본문 += '\n\n🙏 감사합니다.';
+      '\n\n합계: ' + u.콤마(총) + '원';
+    if (계좌) 본문 += '\n\n💰입금계좌\n' + 계좌;
     return 본문;
   }
 
@@ -137,9 +136,9 @@ window.ZG = window.ZG || {};
     if (초과.length) 본문 = '<b style="color:var(--color-danger)">현재고보다 많이 빼는 품목이 있습니다.</b><br>' + 본문;
 
     u.확인({
-      제목: '출고를 처리할까요?',
+      제목: '출고할까요?',
       본문: 본문,
-      확인글: (u.폰인가() && 상태.전화.trim()) ? '출고 처리 · 문자 보내기' : '출고 처리',
+      확인글: (u.폰인가() && 상태.전화.trim()) ? '출고 · 문자 보내기' : '출고',
       위험: !!초과.length
     }, function (했다) { if (했다) 저장진행(); });
   }
@@ -164,11 +163,11 @@ window.ZG = window.ZG || {};
     if (받는곳) 업체반영(받는곳, 전화);
 
     var 총 = 담은것.reduce(function (a, r) { return a + r.수량; }, 0);
-    u.토스트('출고 처리했습니다 — ' + u.콤마(총) + '주');
+    u.토스트('출고했습니다 — ' + u.콤마(총) + '주');
 
     상태.담은것 = []; 상태.검색 = ''; 상태.메모 = '';
     if (참조.메모) 참조.메모.value = '';
-    담은칸다시(); 내역다시();
+    담은칸다시();
     ZG.앱 && ZG.앱.요약다시();
 
     if (u.폰인가() && 전화) {
@@ -282,11 +281,7 @@ window.ZG = window.ZG || {};
   function 담은칸다시() {
     if (!참조.담은칸) return;
     u.비우기(참조.담은칸);
-    if (!상태.담은것.length) {
-      참조.담은칸.appendChild(만들기('div', { style: 'padding:var(--space-sm) 0; color:var(--color-text-muted)', text: '검색해서 담은 품목이 여기 쌓입니다' }));
-    } else {
-      상태.담은것.forEach(function (r) { 참조.담은칸.appendChild(담은줄(r)); });
-    }
+    상태.담은것.forEach(function (r) { 참조.담은칸.appendChild(담은줄(r)); });
     합계다시();
     if (참조.출고단추) 참조.출고단추.disabled = !상태.담은것.length;
   }
@@ -327,17 +322,6 @@ window.ZG = window.ZG || {};
     몸.appendChild(속);
 
     return 만들기('div', { class: 'ph-card alert quiet', style: 'padding:var(--space-md)' }, [머리, 몸]);
-  }
-
-  function 내역다시() {
-    if (!참조.내역칸) return;
-    u.비우기(참조.내역칸);
-    var 묶음들 = 묶음짓기(오늘내역());
-    if (!묶음들.length) {
-      참조.내역칸.appendChild(만들기('div', { style: 'padding:var(--space-sm) 0; color:var(--color-text-muted)', text: '오늘 처리한 출고가 없습니다' }));
-      return;
-    }
-    묶음들.forEach(function (g) { 참조.내역칸.appendChild(묶음카드(g, true, 내역다시)); });
   }
 
   function 검색칸() {
@@ -391,7 +375,6 @@ window.ZG = window.ZG || {};
   function PC배치(뿌리) {
     참조.결과칸 = 만들기('div', { class: 'stack', style: 'margin-top:var(--space-sm)' });
     참조.담은칸 = 만들기('div', { class: 'stack', style: 'margin-top:var(--space-sm)' });
-    참조.내역칸 = 만들기('div', { class: 'stack', style: 'margin-top:var(--space-sm)' });
     참조.합계칸 = 만들기('div', { style: 'text-align:right; margin-top:var(--space-sm); font-size:var(--font-md)' });
 
     var 검색카드 = 만들기('div', { class: 'card' }, [
@@ -412,25 +395,18 @@ window.ZG = window.ZG || {};
       ])
     ]);
 
-    var 출고단추 = 만들기('button', { class: 'btn main wide', type: 'button', text: '출고 처리' });
+    var 출고단추 = 만들기('button', { class: 'btn main wide', type: 'button', text: '출고' });
     출고단추.addEventListener('click', 출고처리);
     참조.출고단추 = 출고단추;
     담은카드.appendChild(만들기('div', { class: 'row bottom' }, [만들기('div', { class: 'spacer' }), 출고단추]));
 
-    var 내역카드 = 만들기('div', { class: 'card' }, [
-      만들기('h3', { text: '오늘 출고 내역' }),
-      참조.내역칸
-    ]);
-
     뿌리.appendChild(검색카드);
     뿌리.appendChild(담은카드);
-    뿌리.appendChild(내역카드);
   }
 
   function 폰배치(뿌리) {
     참조.결과칸 = 만들기('div', { class: 'ph-list', style: 'margin-top:var(--space-sm)' });
     참조.담은칸 = 만들기('div', { class: 'ph-list', style: 'margin-top:var(--space-sm)' });
-    참조.내역칸 = 만들기('div', { class: 'ph-list', style: 'margin-top:var(--space-sm)' });
     참조.합계칸 = 만들기('div', { style: 'text-align:right; margin-top:var(--space-sm)' });
 
     뿌리.appendChild(만들기('div', { class: 'row', style: 'justify-content:flex-end' }, [이력단추()]));
@@ -445,13 +421,10 @@ window.ZG = window.ZG || {};
     뿌리.appendChild(필드('전화번호 <span class="auto">선택 · 문자 보낼 번호</span>', 전화칸()));
     뿌리.appendChild(필드('메모 <span class="auto">선택</span>', 메모칸()));
 
-    var 출고단추 = 만들기('button', { class: 'ph-save', type: 'button', text: '출고 처리' });
+    var 출고단추 = 만들기('button', { class: 'ph-save', type: 'button', text: '출고' });
     출고단추.addEventListener('click', 출고처리);
     참조.출고단추 = 출고단추;
     뿌리.appendChild(출고단추);
-
-    뿌리.appendChild(만들기('div', { class: 'ph-sec', text: '오늘 출고 내역' }));
-    뿌리.appendChild(참조.내역칸);
   }
 
   /* ══════════ 출고이력 ══════════ */
@@ -636,7 +609,7 @@ window.ZG = window.ZG || {};
     u.비우기(뿌리);
     if (상태.보기 === '이력') { 이력화면(뿌리); return; }
     if (u.폰인가()) 폰배치(뿌리); else PC배치(뿌리);
-    결과다시(); 담은칸다시(); 내역다시();
+    결과다시(); 담은칸다시();
   }
 
   function 요약() {
