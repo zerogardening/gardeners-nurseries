@@ -8,7 +8,8 @@ window.ZG = window.ZG || {};
      상품 화면은 들어오면 입고가 먼저다 (2026-09-17 우람님). */
   var 탭들 = [
     { 이름: '입고', 폰: true, 모듈: function () { return ZG.입고; } },
-    { 이름: '재고', 폰: true, 모듈: function () { return ZG.재고; } }
+    { 이름: '재고', 폰: true, 모듈: function () { return ZG.재고; } },
+    { 이름: '출고', 폰: true, 모듈: function () { return ZG.출고; } }
   ];
   var 폰탭들 = 탭들.filter(function (t) { return t.폰; });
   var 지금 = '입고';
