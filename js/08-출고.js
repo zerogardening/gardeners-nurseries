@@ -208,6 +208,15 @@ window.ZG = window.ZG || {};
     플러스.addEventListener('click', function () { 반영(값 + 1); });
     입력.addEventListener('change', function () { 반영(입력.value); });
     입력.addEventListener('blur', function () { 반영(입력.value); });
+    /* 가운데 정렬이라 손대면 커서가 글자 앞에 붙곤 한다 — 눌렀을 때는 늘 뒤로 보내 바로 지울 수 있게 */
+    입력.addEventListener('focus', 커서끝으로);
+    입력.addEventListener('click', 커서끝으로);
+    function 커서끝으로() {
+      requestAnimationFrame(function () {
+        var 길이 = 입력.value.length;
+        try { 입력.setSelectionRange(길이, 길이); } catch (e) { /* 무시 */ }
+      });
+    }
     var 상자 = 만들기('div', { class: 'row', style: 'align-items:center; gap:6px; flex:0 0 auto' }, [마이너스, 입력, 플러스]);
     return { 요소: 상자, 맞추기: 반영 };
   }
@@ -253,6 +262,14 @@ window.ZG = window.ZG || {};
     });
     단가입력.addEventListener('input', function () { r.단가 = u.숫자(단가입력.value); 금액다시(); });
     단가입력.addEventListener('blur', function () { 단가입력.value = u.콤마(r.단가); });
+    ['focus', 'click'].forEach(function (이벤트) {
+      단가입력.addEventListener(이벤트, function () {
+        requestAnimationFrame(function () {
+          var 길이 = 단가입력.value.length;
+          try { 단가입력.setSelectionRange(길이, 길이); } catch (e) { /* 무시 */ }
+        });
+      });
+    });
 
     var 빼기단추 = 만들기('button', { class: 'btn sm', type: 'button', text: '빼기' });
     빼기단추.addEventListener('click', function () { 빼기(r.품목코드); });
@@ -298,9 +315,10 @@ window.ZG = window.ZG || {};
     return 줄;
   }
 
+  /* 카드를 왼쪽으로 밀면 삭제 단추 하나가 나온다(04-공통UI 쓸기붙이기 — 메모·체크리스트와 같은 결) */
   function 묶음카드(g, 펼침기본, 다시그리는것) {
     var 펼침 = 펼침기본;
-    var 머리 = 만들기('button', { class: 'fold', type: 'button', style: 'width:100%' });
+    var 머리 = 만들기('div', { class: 'fold', style: 'width:100%; cursor:pointer' });
     var 몸 = 만들기('div', { class: 'foldbody' + (펼침 ? ' open' : '') });
     function 머리글() {
       머리.innerHTML = (펼침 ? '－' : '＋') + ' ' + u.안전(g.받는곳 || '받는 곳 없음') +
@@ -308,20 +326,20 @@ window.ZG = window.ZG || {};
     }
     머리글();
     머리.addEventListener('click', function () {
+      if (u.방금끌었나()) return;   // 왼쪽으로 밀던 손가락을 뗀 자리에서 클릭이 한 번 더 온다
       펼침 = 몸.classList.toggle('open');
       머리글();
     });
 
     var 속 = 만들기('div', { style: 'padding:var(--space-sm) 0' });
     g.항목.forEach(function (r) { 속.appendChild(항목줄(r, 다시그리는것)); });
-    var 받는곳수정 = 만들기('button', { class: 'btn sm', type: 'button', text: '받는 곳 고치기' });
-    받는곳수정.addEventListener('click', function () { 거래수정(g, 다시그리는것); });
-    var 취소단추 = 만들기('button', { class: 'btn sm warn', type: 'button', text: '이 출고 전체 취소' });
-    취소단추.addEventListener('click', function () { 거래삭제(g, 다시그리는것); });
-    속.appendChild(만들기('div', { class: 'row', style: 'justify-content:flex-end; gap:var(--space-sm); margin-top:var(--space-xs)' }, [받는곳수정, 취소단추]));
     몸.appendChild(속);
 
-    return 만들기('div', { class: 'ph-card alert quiet', style: 'padding:var(--space-md)' }, [머리, 몸]);
+    var 카드 = 만들기('div', { class: 'ph-card alert quiet', style: 'padding:var(--space-md)' }, [머리, 몸]);
+    var 삭제 = u.쓸기단추('삭제', 'del', function () { 거래삭제(g, 다시그리는것); });
+    var 줄 = 만들기('div', { class: '쓸줄' }, [만들기('div', { class: '쓸단추' }, [삭제]), 카드]);
+    u.쓸기붙이기(카드, 76);
+    return 줄;
   }
 
   function 검색칸() {
@@ -438,7 +456,7 @@ window.ZG = window.ZG || {};
     });
   }
 
-  /* 품목 한 줄 고치기 — 수량 · 단가 · 메모만. 받는 곳 · 전화는 거래 전체 몫이라 거래수정()이 따로 맡는다 */
+  /* 품목 한 줄 고치기 — 수량 · 단가 · 메모만 */
   function 수정열기(r, 다시그리는것) {
     다시그리는것 = 다시그리는것 || 이력다시;
     var 값 = { 수량: r.수량, 단가: r.단가 || 0, 메모: r.메모 || '' };
@@ -498,22 +516,6 @@ window.ZG = window.ZG || {};
   }
 
   /* 받는 곳 · 전화는 거래(묶음) 전체가 같은 값을 쓴다 — 고치면 그 거래의 모든 줄에 반영한다 */
-  function 거래수정(g, 다시그리는것) {
-    u.물음({ 제목: '받는 곳을 고칠까요?', 이름: '받는 곳', 값: g.받는곳, 자리표시: '거래처명 · 받는 분' }, function (이름) {
-      if (이름 == null) return;
-      u.물음({ 제목: '전화번호를 고칠까요?', 이름: '전화번호', 값: g.전화, 자리표시: '010-0000-0000' }, function (전화) {
-        if (전화 == null) return;
-        g.항목.forEach(function (r) {
-          ZG.저장소.바꾸기(ZG.저장소.키.출고, r.id, {
-            받는곳: 이름.trim(), 전화: 전화.replace(/[^\d]/g, ''), 수정일시: Date.now()
-          });
-        });
-        u.토스트('고쳤습니다');
-        다시그리는것();
-      });
-    });
-  }
-
   /* .doc 이 하던 방식(11b 인쇄)을 그대로 빌린다 — 인쇄 동안만 body 직계로 옮기고, 클래스로 나머지를 끈다.
      거래(묶음)마다 소제목을 하나씩 세워 명세서 여러 장을 이어 붙인 모양으로 찍는다. */
   function 이력인쇄(묶음들) {
@@ -619,5 +621,8 @@ window.ZG = window.ZG || {};
     return { 왼: 상태.출고일, 오: '오늘 <b>' + 것들.length + '</b>건 · <b>' + u.콤마(총) + '</b>주 나감' };
   }
 
-  ZG.출고 = { 그리기: 그리기, 요약: 요약 };
+  /* 다른 탭으로 나가면 이력을 보고 있었어도 다음에 올 땐 등록 화면부터 (07-앱이 탭을 바꿀 때 부른다) */
+  function 나가기() { 상태.보기 = '등록'; }
+
+  ZG.출고 = { 그리기: 그리기, 요약: 요약, 나가기: 나가기 };
 })(window.ZG);
