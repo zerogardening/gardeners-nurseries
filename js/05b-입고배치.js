@@ -39,7 +39,8 @@ window.ZG = window.ZG || {};
     ]));
     폼.appendChild(만들기('div', { class: 'row bottom' }, [
       내.필드('수량 <span class="req">*</span>', 내.숫자칸('수량'), 'width:118px', '수량'),
-      내.필드('매입단가 <span class="req">*</span>', 내.숫자칸('매입단가'), 'width:138px', '매입단가'),
+      내.필드('매입단가 <span class="auto">선택</span>', 내.숫자칸('매입단가'), 'width:138px', '매입단가'),
+      내.필드('판매단가 <span class="auto">선택</span>', 내.숫자칸('판매단가'), 'width:138px', '판매단가'),
       내.필드('금액 <span class="auto">자동 계산</span>', 참조.금액, 'width:150px'),
       내.필드('과세 · 면세 <span class="req">*</span>', 내.과세칸(), 'width:186px'),
       코드필드(코드칸, 'width:178px')
@@ -87,8 +88,9 @@ window.ZG = window.ZG || {};
       내.필드('규격 <span class="req">*</span> <span class="auto">「치」로 들어와도 cm로 저장합니다</span>', 내.규격칸()),
       만들기('div', { class: 'pair' }, [
         내.필드('수량 <span class="req">*</span>', 내.숫자칸('수량'), null, '수량'),
-        내.필드('매입단가 <span class="req">*</span>', 내.숫자칸('매입단가'), null, '매입단가')
+        내.필드('매입단가 <span class="auto">선택</span>', 내.숫자칸('매입단가'), null, '매입단가')
       ]),
+      내.필드('판매단가 <span class="auto">선택 · 출고 · 명세서에 쓰입니다</span>', 내.숫자칸('판매단가'), null, '판매단가'),
       만들기('div', { class: 'pair' }, [
         내.필드('과세 · 면세 <span class="req">*</span>', 내.과세칸()),
         코드필드(코드칸)
