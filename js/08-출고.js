@@ -11,9 +11,19 @@ window.ZG = window.ZG || {};
   var 상태 = {
     보기: '등록',                 // '등록' | '이력'
     검색: '', 담은것: [], 받는곳: '', 전화: '', 메모: '', 출고일: '',
-    이력검색: '', 이력쪽: 1
+    이력검색: '', 이력쪽: 1, 이력일자: '', 이력달: ''
   };
   var 참조 = {};
+  var 요일 = ['일', '월', '화', '수', '목', '금', '토'];
+
+  function 두자리(n) { return (n < 10 ? '0' : '') + n; }
+  function 달글(달) { return Number(달.slice(0, 4)) + '년 ' + Number(달.slice(5, 7)) + '월'; }
+  function 달옮기기(달, 걸음) {
+    var 해 = Number(달.slice(0, 4)), 월 = Number(달.slice(5, 7)) + 걸음;
+    해 += Math.floor((월 - 1) / 12);
+    월 = ((월 - 1) % 12 + 12) % 12 + 1;
+    return 해 + '-' + 두자리(월);
+  }
 
   /* ── 자료 ── */
   function 기본단가(p) {
@@ -303,21 +313,48 @@ window.ZG = window.ZG || {};
     if (참조.출고단추) 참조.출고단추.disabled = !상태.담은것.length;
   }
 
-  function 항목줄(r, 다시그리는것) {
-    var 줄 = 만들기('div', { class: 'row', style: 'align-items:center; gap:var(--space-sm); padding:var(--space-2xs) 0' });
-    줄.appendChild(만들기('div', { style: 'flex:1', html: u.안전(r.유통명) + ' ' + u.안전(r.규격 || '') +
-      ' <span class="dim">' + u.콤마(r.수량) + '주 X ' + u.콤마(r.단가 || 0) + '원 = ' + u.콤마(r.금액 || r.수량 * (r.단가 || 0)) + '원</span>' }));
-    var 수정 = 만들기('button', { class: 'btn sm', type: 'button', text: '수정' });
-    수정.addEventListener('click', function () { 수정열기(r, 다시그리는것); });
-    var 삭제단추 = 만들기('button', { class: 'btn sm warn', type: 'button', text: '삭제' });
-    삭제단추.addEventListener('click', function () { 삭제(r.id, 다시그리는것); });
-    줄.appendChild(수정); 줄.appendChild(삭제단추);
-    return 줄;
+  /* 화면을 새로 안 띄우고 그 자리에서 바로 수량 · 단가를 고친다. 저장을 눌러야 실제로 반영된다 */
+  function 항목줄(작업행) {
+    var r = 작업행.원본;
+    var 칸 = 만들기('div', { style: 'padding:var(--space-2xs) 0' });
+    칸.innerHTML = '<div class="row" style="align-items:center; gap:var(--space-sm)">' +
+      '<div style="flex:1">' + u.안전(r.유통명) + ' ' + u.안전(r.규격 || '') + '</div></div>';
+
+    var 금액칸 = 만들기('b', { text: u.콤마(작업행.수량 * (Number(작업행.단가) || 0)) + '원' });
+    function 금액다시() { 금액칸.textContent = u.콤마(작업행.수량 * (Number(작업행.단가) || 0)) + '원'; }
+
+    var 수량위젯 = 숫자조절(작업행.수량, 1, function (n) { 작업행.수량 = n; 금액다시(); });
+
+    var 단가입력 = 만들기('input', {
+      class: 'inp num sm', type: 'text', inputmode: 'numeric', style: 'width:90px',
+      value: u.콤마(작업행.단가)
+    });
+    단가입력.addEventListener('input', function () { 작업행.단가 = u.숫자(단가입력.value); 금액다시(); });
+    단가입력.addEventListener('blur', function () { 단가입력.value = u.콤마(작업행.단가); });
+    ['focus', 'click'].forEach(function (이벤트) {
+      단가입력.addEventListener(이벤트, function () {
+        requestAnimationFrame(function () {
+          var 길이 = 단가입력.value.length;
+          try { 단가입력.setSelectionRange(길이, 길이); } catch (e) { /* 무시 */ }
+        });
+      });
+    });
+
+    var 줄 = 만들기('div', { class: 'row', style: 'align-items:center; gap:var(--space-md); margin-top:var(--space-2xs); flex-wrap:wrap' }, [
+      만들기('span', { class: 'auto', text: '수량' }), 수량위젯.요소,
+      만들기('span', { class: 'auto', text: '단가' }), 단가입력,
+      만들기('div', { style: 'flex:1' }),
+      만들기('span', { class: 'auto', text: '금액' }), 금액칸
+    ]);
+    칸.appendChild(줄);
+    return 칸;
   }
 
   /* 카드를 왼쪽으로 밀면 삭제 단추 하나가 나온다(04-공통UI 쓸기붙이기 — 메모·체크리스트와 같은 결) */
   function 묶음카드(g, 펼침기본, 다시그리는것) {
     var 펼침 = 펼침기본;
+    var 작업 = g.항목.map(function (r) { return { 원본: r, 수량: r.수량, 단가: Number(r.단가) || 0 }; });
+
     var 머리 = 만들기('div', { class: 'fold', style: 'width:100%; cursor:pointer' });
     var 몸 = 만들기('div', { class: 'foldbody' + (펼침 ? ' open' : '') });
     function 머리글() {
@@ -332,10 +369,33 @@ window.ZG = window.ZG || {};
     });
 
     var 속 = 만들기('div', { style: 'padding:var(--space-sm) 0' });
-    g.항목.forEach(function (r) { 속.appendChild(항목줄(r, 다시그리는것)); });
+    작업.forEach(function (w) { 속.appendChild(항목줄(w)); });
+
+    var 저장단추 = 만들기('button', { class: 'btn main sm', type: 'button', text: '저장' });
+    저장단추.addEventListener('click', function () {
+      작업.forEach(function (w) {
+        var 수량 = Math.max(1, Math.floor(w.수량) || 1);
+        var 단가 = Math.max(0, w.단가 || 0);
+        ZG.저장소.바꾸기(ZG.저장소.키.출고, w.원본.id, { 수량: 수량, 단가: 단가, 금액: 수량 * 단가, 수정일시: Date.now() });
+      });
+      u.토스트('저장했습니다');
+      다시그리는것();
+      ZG.앱 && ZG.앱.요약다시();
+    });
+    var 문자단추 = 만들기('button', { class: 'btn sm', type: 'button', text: '문자' });
+    문자단추.addEventListener('click', function () {
+      if (!u.폰인가()) { u.토스트('문자는 폰에서만 보낼 수 있습니다'); return; }
+      if (!g.전화) { u.토스트('전화번호가 없어 문자를 보낼 수 없습니다'); return; }
+      var 자사 = ZG.업체자료 ? ZG.업체자료.자사() : null;
+      var 계좌 = 자사 && 자사.입금계좌 ? String(자사.입금계좌).trim() : '';
+      var 줄들 = 작업.map(function (w) { return { 유통명: w.원본.유통명, 규격: w.원본.규격, 수량: w.수량, 단가: w.단가 }; });
+      location.href = 'sms:' + g.전화 + '?body=' + encodeURIComponent(문자내용(줄들, g.받는곳, g.출고일, 계좌));
+    });
+    속.appendChild(만들기('div', { class: 'row', style: 'justify-content:flex-end; gap:var(--space-sm); margin-top:var(--space-sm)' }, [문자단추, 저장단추]));
     몸.appendChild(속);
 
-    var 카드 = 만들기('div', { class: 'ph-card alert quiet', style: 'padding:var(--space-md)' }, [머리, 몸]);
+    /* 🔴 position:relative 가 없으면 절대배치된 쓸단추가 카드보다 위로 떠 늘 보인다 (04-공통UI 쓸기 참고) */
+    var 카드 = 만들기('div', { class: 'ph-card alert quiet', style: 'padding:var(--space-md); position:relative' }, [머리, 몸]);
     var 삭제 = u.쓸기단추('삭제', 'del', function () { 거래삭제(g, 다시그리는것); });
     var 줄 = 만들기('div', { class: '쓸줄' }, [만들기('div', { class: '쓸단추' }, [삭제]), 카드]);
     u.쓸기붙이기(카드, 76);
@@ -386,7 +446,12 @@ window.ZG = window.ZG || {};
 
   function 이력단추() {
     var b = 만들기('button', { class: 'btn sm', type: 'button', text: '📋 출고이력' });
-    b.addEventListener('click', function () { 상태.보기 = '이력'; 상태.이력쪽 = 1; ZG.앱.다시그리기(); });
+    b.addEventListener('click', function () {
+      상태.이력일자 = u.오늘문자(); 상태.이력달 = 상태.이력일자.slice(0, 7);
+      상태.이력검색 = ''; 상태.이력쪽 = 1;
+      상태.보기 = '이력';
+      ZG.앱.다시그리기();
+    });
     return b;
   }
 
@@ -446,76 +511,91 @@ window.ZG = window.ZG || {};
   }
 
   /* ══════════ 출고이력 ══════════ */
+  /* 찾는 말이 있으면 날짜와 상관없이 전체에서 찾고, 없으면 고른 날 하루만 본다 */
   function 이력전체() {
     var 열쇠 = 상태.이력검색.trim().toLowerCase().replace(/\s/g, '');
-    var 것들 = ZG.저장소.읽기(ZG.저장소.키.출고).sort(function (a, b) { return (b.등록일시 || 0) - (a.등록일시 || 0); });
-    if (!열쇠) return 것들;
-    return 것들.filter(function (r) {
-      var 밭 = (r.유통명 + (r.받는곳 || '') + r.품목코드).toLowerCase().replace(/\s/g, '');
-      return 밭.indexOf(열쇠) >= 0;
-    });
-  }
-
-  /* 품목 한 줄 고치기 — 수량 · 단가 · 메모만 */
-  function 수정열기(r, 다시그리는것) {
-    다시그리는것 = 다시그리는것 || 이력다시;
-    var 값 = { 수량: r.수량, 단가: r.단가 || 0, 메모: r.메모 || '' };
-
-    function 수칸(이름, 옵션) {
-      var e = 만들기('input', Object.assign({ class: 'inp num', type: 'text', inputmode: 'numeric' }, 옵션 || {}));
-      e.value = u.콤마(값[이름]);
-      e.addEventListener('input', function () { 값[이름] = u.숫자(e.value); });
-      e.addEventListener('blur', function () { e.value = u.콤마(값[이름]); });
-      return e;
-    }
-    function 글칸(이름, 옵션) {
-      var e = 만들기('input', Object.assign({ class: 'inp', type: 'text' }, 옵션 || {}));
-      e.value = 값[이름];
-      e.addEventListener('input', function () { 값[이름] = e.value; });
-      return e;
-    }
-    function 필드2(라벨, 내용) { return 만들기('div', { class: 'field' }, [만들기('label', { html: 라벨 }), 내용]); }
-
-    var 패널 = 만들기('div', { class: 'editpanel', role: 'dialog', 'aria-modal': 'true', 'aria-label': '출고 품목 수정' }, [
-      만들기('h3', { text: '출고 품목 수정' }),
-      만들기('div', { class: 'sub', html: u.안전(r.유통명) + ' · ' + u.안전(r.규격 || '') + ' · ' + u.안전(r.출고일) }),
-      만들기('div', { class: 'pair' }, [필드2('수량', 수칸('수량')), 필드2('단가', 수칸('단가'))]),
-      필드2('메모', 글칸('메모'))
-    ]);
-    var 스크림 = 만들기('div', { class: 'editscrim' });
-    function 닫기() {
-      document.removeEventListener('keydown', 탈출);
-      if (패널.parentNode) 패널.parentNode.removeChild(패널);
-      if (스크림.parentNode) 스크림.parentNode.removeChild(스크림);
-      document.body.style.overflow = '';
-    }
-    function 탈출(e) { if (e.key === 'Escape') 닫기(); }
-    스크림.addEventListener('click', 닫기);
-
-    var 취소 = 만들기('button', { class: 'btn', type: 'button', text: '취소' });
-    취소.addEventListener('click', 닫기);
-    var 저장 = 만들기('button', { class: 'btn main', type: 'button', text: '저장' });
-    저장.addEventListener('click', function () {
-      var 수량 = Math.max(1, Math.floor(값.수량) || 1);
-      var 단가 = Math.max(0, 값.단가 || 0);
-      ZG.저장소.바꾸기(ZG.저장소.키.출고, r.id, {
-        수량: 수량, 단가: 단가, 금액: 수량 * 단가,
-        메모: String(값.메모).trim(), 수정일시: Date.now()
+    var 전체 = ZG.저장소.읽기(ZG.저장소.키.출고).sort(function (a, b) { return (b.등록일시 || 0) - (a.등록일시 || 0); });
+    if (열쇠) {
+      return 전체.filter(function (r) {
+        var 밭 = (r.유통명 + (r.받는곳 || '') + r.품목코드).toLowerCase().replace(/\s/g, '');
+        return 밭.indexOf(열쇠) >= 0;
       });
-      u.토스트('고쳤습니다');
-      닫기();
-      다시그리는것();
-      ZG.앱 && ZG.앱.요약다시();
-    });
-    패널.appendChild(만들기('div', { class: 'btnrow' }, [취소, 저장]));
-
-    document.body.appendChild(스크림);
-    document.body.appendChild(패널);
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', 탈출);
+    }
+    return 전체.filter(function (r) { return r.출고일 === 상태.이력일자; });
   }
 
-  /* 받는 곳 · 전화는 거래(묶음) 전체가 같은 값을 쓴다 — 고치면 그 거래의 모든 줄에 반영한다 */
+  /* 그 달에 출고가 있던 날 — 달력 점 표시에 쓴다 */
+  function 이력점표(달) {
+    var 표 = {};
+    ZG.저장소.읽기(ZG.저장소.키.출고).forEach(function (r) {
+      if (String(r.출고일).slice(0, 7) === 달) 표[r.출고일] = true;
+    });
+    return 표;
+  }
+
+  function 날짜고르기(날짜) {
+    상태.이력일자 = 날짜; 상태.이력달 = 날짜.slice(0, 7);
+    상태.이력검색 = ''; 상태.이력쪽 = 1;
+    if (참조.이력검색입력) 참조.이력검색입력.value = '';
+    달력다시(); 이력다시();
+  }
+
+  function 달로(달) {
+    상태.이력달 = 달;
+    if (상태.이력일자.slice(0, 7) !== 달) 상태.이력일자 = 달 + '-01';
+    달력다시(); 이력다시();
+  }
+
+  function 달력다시() {
+    if (!참조.달력칸) return;
+    u.비우기(참조.달력칸);
+    달력그리기(참조.달력칸);
+  }
+
+  function 달력그리기(자리) {
+    var 머리 = 만들기('div', { class: 'calhd' });
+    var 앞 = 만들기('button', { type: 'button', text: '‹', 'aria-label': '지난 달' });
+    앞.addEventListener('click', function () { 달로(달옮기기(상태.이력달, -1)); });
+    var 뒤 = 만들기('button', { type: 'button', text: '›', 'aria-label': '다음 달' });
+    뒤.addEventListener('click', function () { 달로(달옮기기(상태.이력달, 1)); });
+    머리.appendChild(앞);
+    머리.appendChild(만들기('div', { class: 'm', text: 달글(상태.이력달) }));
+    머리.appendChild(뒤);
+    자리.appendChild(머리);
+
+    var 표 = 만들기('div', { class: 'cal' });
+    요일.forEach(function (요, i) {
+      표.appendChild(만들기('div', { class: 'wd' + (i === 0 ? ' sun' : ''), text: 요 }));
+    });
+
+    var 해 = Number(상태.이력달.slice(0, 4)), 월 = Number(상태.이력달.slice(5, 7));
+    var 첫날 = new Date(해, 월 - 1, 1);
+    var 날수 = new Date(해, 월, 0).getDate();
+    var 점표 = 이력점표(상태.이력달);
+    var 오늘 = u.오늘문자();
+
+    for (var b = 0; b < 첫날.getDay(); b++) 표.appendChild(만들기('div', { class: 'd off' }));
+    for (var n = 1; n <= 날수; n++) {
+      (function (일) {
+        var 날짜 = 상태.이력달 + '-' + 두자리(일);
+        var 요일수 = new Date(해, 월 - 1, 일).getDay();
+        var 칸 = 만들기('button', {
+          type: 'button',
+          class: 'd' + (요일수 === 0 ? ' sun' : '') + (날짜 === 상태.이력일자 ? ' on' : '') + (날짜 === 오늘 ? ' today' : ''),
+          text: String(일)
+        });
+        if (점표[날짜]) {
+          var 점 = 만들기('span', { class: 'dots' });
+          점.appendChild(만들기('i'));
+          칸.appendChild(점);
+        }
+        칸.addEventListener('click', function () { 날짜고르기(날짜); });
+        표.appendChild(칸);
+      })(n);
+    }
+    자리.appendChild(표);
+  }
+
   /* .doc 이 하던 방식(11b 인쇄)을 그대로 빌린다 — 인쇄 동안만 body 직계로 옮기고, 클래스로 나머지를 끈다.
      거래(묶음)마다 소제목을 하나씩 세워 명세서 여러 장을 이어 붙인 모양으로 찍는다. */
   function 이력인쇄(묶음들) {
@@ -577,12 +657,14 @@ window.ZG = window.ZG || {};
   }
 
   function 이력검색칸() {
-    var e = u.손대야열림(만들기('input', { class: 'inp', type: 'search', placeholder: '🔍  유통명 · 받는 곳으로 찾기' }));
+    var e = u.손대야열림(만들기('input', { class: 'inp', type: 'search', placeholder: '🔍  유통명 · 받는 곳으로 찾기 (모든 날짜)' }));
     u.조합안전입력(e, function (값) { 상태.이력검색 = 값; 상태.이력쪽 = 1; 이력다시(); }, 150);
+    참조.이력검색입력 = e;
     return e;
   }
 
   function 이력화면(뿌리) {
+    if (!상태.이력일자) { 상태.이력일자 = u.오늘문자(); 상태.이력달 = 상태.이력일자.slice(0, 7); }
     u.비우기(뿌리);
     var 뒤로 = 만들기('button', { class: 'btn sm', type: 'button', text: '‹ 출고 등록' });
     뒤로.addEventListener('click', function () { 상태.보기 = '등록'; ZG.앱.다시그리기(); });
@@ -596,10 +678,13 @@ window.ZG = window.ZG || {};
       머리줄.appendChild(출력);
     }
 
+    참조.달력칸 = 만들기('div');
+    달력그리기(참조.달력칸);
+
     참조.이력칸 = 만들기('div', { style: 'margin-top:var(--space-md)' });
     var 카드 = 만들기('div', { class: 'card' }, [
       만들기('h3', { text: '출고 이력' }),
-      머리줄, 참조.이력칸
+      참조.달력칸, 머리줄, 참조.이력칸
     ]);
     뿌리.appendChild(카드);
     이력다시();
