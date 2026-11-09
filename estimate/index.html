@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html{color-scheme:light}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>제로가드닝 셀프 견적</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: 사진 카드 중심의 단계별 선택(왼쪽) + 고정 견적 요약(오른쪽), 모바일은 하단 합계 바 */
+:root{
+  --bg:#ffffff; --sub:#f5f6f7; --fg:#1b1d1f; --fg2:#4a4f55; --muted:#868b92; --line:#e9ebee;
+  --accent:#0f9d58; --accent-fg:#ffffff; --accent-soft:#e7f6ee; --badge:#ff6b35;
+  --font:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141517; --sub:#1d1f22; --fg:#eceef0; --fg2:#c3c7cc; --muted:#8d939a; --line:#2c2f33;
+  --accent:#34c47c; --accent-fg:#06140c; --accent-soft:#16301f; --badge:#ff8a5c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141517; --sub:#1d1f22; --fg:#eceef0; --fg2:#c3c7cc; --muted:#8d939a; --line:#2c2f33;
+  --accent:#34c47c; --accent-fg:#06140c; --accent-soft:#16301f; --badge:#ff8a5c; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.5;letter-spacing:-.01em;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit;letter-spacing:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+img{display:block}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* header */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.hd{max-width:1120px;margin:0 auto;height:56px;display:flex;align-items:center;gap:10px}
+.logo{font-weight:800;font-size:18px;letter-spacing:-.03em}
+.logo b{color:var(--accent)}
+.hd .sep{width:1px;height:14px;background:var(--line)}
+.hd .ttl{font-size:14px;color:var(--fg2);font-weight:500}
+.hd .test{margin-left:auto;font-size:12px;color:var(--muted)}
+.bar{height:3px;background:var(--line)}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .35s}
+
+/* intro */
+.intro{max-width:1120px;margin:0 auto;padding-block:24px 40px}
+.intro-hero{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:21/9;max-width:100%;background:var(--sub)}
+.intro-hero img{width:100%;height:100%;object-fit:cover}
+.intro-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,0) 65%)}
+.intro-copy{position:absolute;left:32px;bottom:32px;right:32px;z-index:1;color:#fff;max-width:440px}
+.intro-copy h1{font-size:30px;line-height:1.3;margin:0 0 8px;font-weight:700;letter-spacing:-.03em;text-wrap:balance}
+.intro-copy p{margin:0;font-size:15px;opacity:.9}
+@media (max-width:640px){.intro-hero{aspect-ratio:4/5}.intro-copy{left:20px;bottom:20px;right:20px}.intro-copy h1{font-size:24px}.intro-hero::after{background:linear-gradient(0deg,rgba(0,0,0,.65),rgba(0,0,0,0) 70%)}}
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 24px}
+@media (max-width:640px){.how{grid-template-columns:minmax(0,1fr)}}
+.how{counter-reset:h}
+.how div{counter-increment:h;display:grid;grid-template-columns:auto 1fr;column-gap:10px;padding:2px 0}
+.how div::before{content:counter(h);grid-row:span 2;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);color:var(--muted);font-size:12px;display:grid;place-items:center;margin-top:1px}
+.how b{font-size:14px;font-weight:600}
+.how span{font-size:13px;color:var(--muted)}
+.start{display:block;width:100%;max-width:360px;background:var(--accent);color:var(--accent-fg);border:0;border-radius:6px;padding:16px;font-size:16px;font-weight:700;cursor:pointer}
+
+/* main grid */
+.wrap{max-width:1120px;margin:0 auto;padding-block:28px 140px;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px;align-items:start}
+@media (max-width:920px){.wrap{grid-template-columns:minmax(0,1fr)}.summary{display:none}}
+
+.crumbs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:20px}
+.crumbs button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--muted);cursor:pointer}
+.crumbs button.on{border-color:var(--fg);color:var(--fg);font-weight:600}
+.crumbs button.done{color:var(--accent);border-color:var(--accent-soft);background:var(--accent-soft)}
+.crumbs button:disabled{cursor:default;opacity:.55}
+
+.q{font-size:24px;line-height:1.35;font-weight:700;letter-spacing:-.03em;margin:0 0 6px;text-wrap:balance}
+.qh{color:var(--fg2);margin:0 0 20px;font-size:15px}
+.sub-q{font-size:17px;font-weight:700;margin:36px 0 4px}
+.sub-h{font-size:13px;color:var(--muted);margin:0 0 14px}
+
+/* photo cards */
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 14px}
+.cards.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cards.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:640px){.cards,.cards.c4{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 10px}}
+.card{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card .ph{position:relative;aspect-ratio:4/3;max-width:100%;border-radius:6px;overflow:hidden;background:var(--sub);outline:2px solid transparent;outline-offset:-2px;transition:outline-color .15s}
+.card .ph img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.card:hover .ph img{transform:scale(1.03)}
+.card .chk{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.28);border:1.5px solid #fff;display:grid;place-items:center}
+.card.multi .chk{border-radius:5px}
+.card[aria-pressed="true"] .ph{outline-color:var(--accent)}
+.card[aria-pressed="true"] .ph::after{content:"";position:absolute;inset:0;background:rgba(15,157,88,.12)}
+.card[aria-pressed="true"] .chk{background:var(--accent);border-color:var(--accent)}
+.card[aria-pressed="true"] .chk::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.card:focus-visible .ph{outline-color:var(--fg)}
+.card .tag{position:absolute;left:8px;top:8px;background:var(--badge);color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:3px}
+.card .ref{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 6px;font-size:11px;color:#fff;background:linear-gradient(0deg,rgba(0,0,0,.55),rgba(0,0,0,0));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .nm{font-size:15px;font-weight:700;line-height:1.35}
+.card .nm small{font-weight:400;color:var(--muted);font-size:12px;margin-left:4px}
+.card .ds{font-size:13px;color:var(--fg2);line-height:1.45;margin-top:-4px}
+.card .pl{font-size:12px;color:var(--muted);margin-top:-4px}
+.card .pr{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.card .pr span{font-weight:400;color:var(--muted);font-size:12px}
+
+/* area + path inputs */
+.panel{border:1px solid var(--line);border-radius:8px;padding:20px}
+.num{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.num input{width:120px;font-size:34px;font-weight:700;border:0;border-bottom:2px solid var(--fg);background:none;padding:0 0 2px;font-variant-numeric:tabular-nums;border-radius:0}
+.num input:focus{outline:none;border-color:var(--accent)}
+.num .u{font-size:20px;font-weight:700}
+.num .cv{color:var(--muted);font-size:14px;margin-left:6px}
+input[type=range]{width:100%;accent-color:var(--accent);margin:18px 0 2px}
+.scale{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:18px}
+@media (max-width:640px){.presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.preset{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:10px 12px;text-align:left;cursor:pointer}
+.preset b{display:block;font-size:15px}
+.preset span{font-size:12px;color:var(--muted)}
+.preset[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tip{display:flex;gap:10px;align-items:flex-start;background:var(--sub);border-radius:6px;padding:12px 14px;font-size:13px;color:var(--fg2);margin-top:14px}
+.tip b{color:var(--fg)}
+
+.widths{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.wbtn{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:14px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.wbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.wbtn .vis{height:34px;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 10px);border-radius:3px}
+.wbtn .vis i{display:block;height:100%;background:var(--muted);opacity:.5;border-radius:2px}
+.wbtn[aria-pressed="true"] .vis i{background:var(--accent);opacity:.8}
+.wbtn b{font-size:15px}
+.wbtn span{font-size:12px;color:var(--muted)}
+
+/* nav */
+.nav{display:flex;gap:8px;margin-top:36px}
+.btn{border:0;border-radius:6px;padding:15px 24px;font-weight:700;font-size:15px;cursor:pointer}
+.btn.pri{background:var(--accent);color:var(--accent-fg);min-width:200px}
+.btn.pri:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+.btn.sec{background:var(--bg);border:1px solid var(--line);color:var(--fg2)}
+@media (max-width:920px){.nav .btn.pri{display:none}}
+
+/* summary */
+.summary{position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.sm-hd{padding:16px 18px;border-bottom:1px solid var(--line);font-weight:700;font-size:15px;display:flex;justify-content:space-between}
+.sm-hd span{font-weight:400;color:var(--muted);font-size:13px}
+.sm-list{padding:6px 18px;max-height:46vh;overflow:auto}
+.sm-row{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.sm-row:last-child{border-bottom:0}
+.sm-row img{width:44px;height:44px;border-radius:4px;object-fit:cover;flex:none;background:var(--sub)}
+.sm-row .k{flex:1;min-width:0;font-size:13px;font-weight:600;line-height:1.35}
+.sm-row .k small{display:block;font-weight:400;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sm-row .v{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sm-empty{padding:24px 0;color:var(--muted);font-size:13px;text-align:center}
+.sm-total{background:var(--sub);padding:16px 18px}
+.sm-total .l{font-size:12px;color:var(--muted)}
+.sm-total .a{font-size:26px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.sm-total .r{font-size:12px;color:var(--fg2)}
+
+.mbar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bg);border-top:1px solid var(--line);padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+@media (max-width:920px){.mbar.show{display:flex;align-items:center;gap:12px}}
+.mbar .t{flex:1;min-width:0}
+.mbar .t small{display:block;font-size:12px;color:var(--muted)}
+.mbar .t b{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.mbar .btn{padding:14px 22px;min-width:120px}
+
+/* result */
+.receipt{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.rc-row{display:flex;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.rc-row img{width:64px;height:64px;border-radius:4px;object-fit:cover;flex:none;background:var(--sub)}
+.rc-row .noimg{width:64px;height:64px;border-radius:4px;flex:none;background:var(--sub);display:grid;place-items:center;font-size:11px;color:var(--muted)}
+.rc-row .k{flex:1;min-width:0}
+.rc-row .k b{display:block;font-size:15px}
+.rc-row .k small{font-size:13px;color:var(--muted)}
+.rc-row .v{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rc-sum{display:flex;justify-content:space-between;align-items:baseline;padding:18px;background:var(--sub);flex-wrap:wrap;gap:6px}
+.rc-sum b{font-size:28px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.notes{font-size:13px;color:var(--fg2);margin:14px 0 0;padding-left:18px}
+.notes li+li{margin-top:4px}
+form{display:grid;gap:12px;max-width:480px}
+form label{font-size:13px;font-weight:600;display:grid;gap:6px}
+form input{border:1px solid var(--line);border-radius:6px;padding:13px 14px;background:var(--bg);font-weight:400}
+form input:focus{outline:none;border-color:var(--accent)}
+.done-msg{background:var(--accent-soft);border-radius:6px;padding:14px 16px;font-size:14px;margin-top:12px}
+
+footer{max-width:1120px;margin:0 auto;padding-block:0 120px;font-size:12px;color:var(--muted)}
+footer summary{cursor:pointer}
+footer ul{padding-left:18px;margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<header>
+  <div class="hd gut">
+    <span class="logo">zero<b>garden</b></span><span class="sep"></span><span class="ttl">셀프 정원 견적</span>
+    <span class="test">테스트 버전</span>
+  </div>
+  <div class="bar"><i id="bar"></i></div>
+</header>
+
+<section class="intro gut" id="intro">
+  <div class="intro-hero">
+    <img src="img/hero.jpg" alt="그라스와 여러해살이풀이 어우러진 자연주의 정원, 시카고 루리 가든">
+    <div class="intro-copy">
+      <h1>우리 집 정원, 견적부터 바로 확인해 보세요</h1>
+      <p>사진을 보면서 고르기만 하면 돼요. 3분 정도 걸려요.</p>
+    </div>
+  </div>
+  <div class="how" aria-label="진행 순서">
+    <div><b>사진 보고 고르기</b><span>스타일, 길, 식물, 시설을 사진으로 비교해요</span></div>
+    <div><b>금액 바로 확인</b><span>고를 때마다 오른쪽 견적이 바뀌어요</span></div>
+    <div><b>실측 후 확정</b><span>마음에 들면 현장 실측을 신청하세요</span></div>
+  </div>
+  <button class="start" id="start" type="button">견적 내러 가기</button>
+</section>
+
+<div class="wrap gut" id="app" hidden>
+  <main>
+    <nav class="crumbs" id="crumbs" aria-label="단계"></nav>
+    <section id="stage"></section>
+    <div class="nav">
+      <button class="btn sec" id="prev" type="button">이전</button>
+      <button class="btn pri" id="next" type="button">다음</button>
+    </div>
+  </main>
+  <aside class="summary" aria-label="견적 요약">
+    <div class="sm-hd">내 정원 견적 <span id="sm-count"></span></div>
+    <div class="sm-list" id="sm-list"></div>
+    <div class="sm-total">
+      <div class="l">예상 합계 · 부가세 별도</div>
+      <div class="a" id="total">0원</div>
+      <div class="r" id="range"></div>
+    </div>
+  </aside>
+</div>
+
+<footer class="gut">
+  <details><summary>사진 출처 (Flickr·Wikimedia, CC 라이선스)</summary><ul id="credits"></ul></details>
+</footer>
+
+<div class="mbar gut" id="mbar">
+  <div class="t"><small>예상 합계 · 부가세 별도</small><b id="mtotal">0원</b></div>
+  <button class="btn pri" id="mnext" type="button">다음</button>
+</div>
+
+<script>
+const CREDITS={"hero": "Lurie Garden IMG 20181101 152936297.jpg / NewtonCourt / CC BY-SA 4.0", "st_natural": "RHS Wisley - Piet Oudolf Landscape Garden - geogra / Colin Smith / CC BY-SA 2.0", "st_japanese": "Adachi Dry Landscape / campra / CC BY-NC-ND", "st_modern": "Chelsea flower show gardens / Rictor Norton & David Allen / CC BY", "st_cottage": "Great Dixter Gardens, Sussex, England (1 of 23) |  / ukgardenphotos / CC BY-NC-ND", "st_korean": "Soswaewon, a traditional garden, Korea(The traces  / Michael@0730 / CC BY-ND", "st_med": "A corner of my garden 6feb11 / Monica Arellano-Ongpin / CC BY", "st_dry": "Dry Gardens in England (3 of 21) | Beth Chatto Gar / ukgardenphotos / CC BY-NC-ND", "st_formal": "Château de Villandry Gardens / geoftheref / CC BY-NC-ND", "st_woodland": "digitalis in the , woodland garden / Kew on Flickr / CC BY-NC-SA", "st_kitchen": "Villandry Gardens A 2nd Wide Angle View / bestfor / richard / CC BY-NC-ND", "path_yes": "English Herbaceous Borders | Gardens at RHS Wisley / ukgardenphotos / CC BY-NC-ND", "path_no": "Watering the backyard lawn, dappled sunlight, hose / Wonderlane / CC BY", "m_masato": "matt-ross-capitola-2 / CountryMouse13 / CC BY", "m_gravel": "Square Trees / SFB579 Namaste / CC BY", "m_step": "The Landscape of my Life / Ronald Douglas Frazier / CC BY", "m_basalt": "Stepping stones / Maria Keays / CC BY", "m_granite": "Contemporary Backyard Water Feature by Architectur / Landscape Design Advisor / CC BY-ND", "m_deck": "Autumn Plants / wwarby / CC BY", "p_min": "Watering the backyard lawn, dappled sunlight, hose / Wonderlane / CC BY", "p_basic": "Circular Driveway Design by Paul Marcial Landscape / Landscape Design Advisor / CC BY-ND", "p_rich": "reading in the garden, / David McSpadden / CC BY", "p_full": "digitalis in the , woodland garden / Kew on Flickr / CC BY-NC-SA", "t_pine": "Changdeokgung Huwon 11 / travel oriented / CC BY-SA", "t_maple": "maple / kloniwotski / CC BY", "t_olive": "Olivo secolare - secular olive tree / Renzo Ferrante / CC BY", "t_serv": "Kousa dogwood, Harvard Yard / Muffet / CC BY", "x_light": "Golfing at Dusk on the Lighted Course / Trey Ratcliff / CC BY-NC-SA", "x_water": "Drip irrigation / JobyOne / CC BY", "x_deck": "MLS Backyard deck / Insight Imaging: John A Ryan Photography / CC BY-NC-SA", "x_pergola": "004 Pergola Gardens, Hampstead Heath - 15 lensbaby / philhearing / CC BY", "x_tap": "One for the lawn / khairilfz / CC BY-NC-ND", "x_edge": "strolling the Central Park Conservancy gardens / David McSpadden / CC BY"};
+// ---- 테스트용 단가표 (원) ----
+const STYLES=[
+  {id:'natural',ref:'RHS 위즐리 · 피트 아우돌프 설계',img:'st_natural',name:'자연주의 정원',en:'Naturalistic',desc:'그라스와 여러해살이풀을 들판처럼 섞어 심어요',plants:'수크령 · 에키네시아 · 억새',unit:240000,hot:true},
+  {id:'japanese',ref:'일본 아다치 미술관 정원',img:'st_japanese',name:'재패니즈 가든',en:'Japanese',desc:'단풍, 이끼, 연못과 돌로 고요하게',plants:'단풍나무 · 이끼 · 철쭉',unit:300000},
+  {id:'modern',ref:'첼시 플라워쇼 출품 정원',img:'st_modern',name:'모던 정원',en:'Modern',desc:'직선 화단과 판석, 절제된 식재',plants:'그라스 · 회양목 · 자작나무',unit:220000,hot:true},
+  {id:'cottage',ref:'영국 그레이트 딕스터',img:'st_cottage',name:'코티지 정원',en:'Cottage',desc:'꽃이 가득한 영국 시골집 느낌',plants:'장미 · 디기탈리스 · 라벤더',unit:240000},
+  {id:'korean',ref:'담양 소쇄원',img:'st_korean',name:'한국 전통 정원',en:'Korean',desc:'소나무와 자연석, 여백을 살린 구성',plants:'소나무 · 배롱나무 · 맥문동',unit:320000},
+  {id:'med',ref:'이탈리아 토스카나 주택 정원',img:'st_med',name:'지중해 정원',en:'Mediterranean',desc:'올리브와 라벤더, 밝은 돌과 화분',plants:'올리브 · 라벤더 · 로즈마리',unit:230000},
+  {id:'dry',ref:'영국 베스 채토 자갈 정원',img:'st_dry',name:'드라이 가든',en:'Dry · Gravel',desc:'자갈 위에 가뭄에 강한 식물, 물 주기 거의 없음',plants:'세덤 · 유카 · 블루페스큐',unit:180000},
+  {id:'formal',ref:'프랑스 빌랑드리 성',img:'st_formal',name:'포멀 정원',en:'Formal',desc:'좌우 대칭, 다듬은 생울타리와 토피어리',plants:'회양목 · 주목 · 장미',unit:260000},
+  {id:'woodland',ref:'영국 큐 가든 우드랜드',img:'st_woodland',name:'그늘 정원',en:'Woodland',desc:'큰 나무 아래, 볕이 적은 마당에 맞춰요',plants:'호스타 · 고사리 · 비비추',unit:200000},
+  {id:'kitchen',ref:'빌랑드리 성 채소 정원(포타제)',img:'st_kitchen',name:'키친가든',en:'Kitchen',desc:'텃밭 상자와 허브, 작은 과실수',plants:'블루베리 · 허브 · 쌈채소',unit:150000},
+];
+const PRESETS=[{a:10,t:'타운하우스 마당'},{a:30,t:'전원주택 앞마당'},{a:50,t:'넓은 단독주택'},{a:100,t:'세컨하우스·농가'}];
+const WIDTHS=[{w:0.6,d:'혼자 걷는 폭'},{w:0.9,d:'가장 많이 해요'},{w:1.2,d:'둘이 나란히'}];
+const MATS=[
+  {id:'masato',img:'m_masato',name:'마사토 다짐',desc:'흙길처럼 자연스러움, 비 온 뒤 보수 필요',m2:40000},
+  {id:'gravel',img:'m_gravel',name:'쇄석 · 자갈',desc:'배수가 좋고 밟으면 사각 소리',m2:55000},
+  {id:'step',img:'m_step',name:'디딤석',desc:'잔디나 바크 위에 징검다리처럼',m2:90000},
+  {id:'basalt',img:'m_basalt',name:'현무암 판석',desc:'짙은 회색, 잘 미끄러지지 않음',m2:140000},
+  {id:'granite',img:'m_granite',name:'화강석 판석',desc:'밝고 반듯한 마감',m2:160000},
+  {id:'deck',img:'m_deck',name:'목재 데크길',desc:'신발 젖을 일 없이 깔끔함',m2:220000},
+];
+const PLANTS=[
+  {id:'min',img:'p_min',name:'최소',desc:'잔디 위주, 화단은 한두 곳',py:0},
+  {id:'basic',img:'p_basic',name:'기본',desc:'관목과 꽃을 테두리 위주로',py:50000},
+  {id:'rich',img:'p_rich',name:'풍성하게',desc:'계절마다 꽃이 바뀌도록 빽빽하게',py:100000},
+  {id:'full',img:'p_full',name:'숲처럼',desc:'큰 나무부터 지피식물까지 층층이',py:180000},
+];
+const TREES=[
+  {id:'pine',img:'t_pine',name:'소나무',size:'H3.0m',price:3200000},
+  {id:'maple',img:'t_maple',name:'단풍나무',size:'H2.5m',price:1400000},
+  {id:'olive',img:'t_olive',name:'올리브나무',size:'H1.8m',price:850000},
+  {id:'serv',img:'t_serv',name:'산딸나무',size:'H2.5m',price:950000},
+];
+const EXTRAS=[
+  {id:'light',img:'x_light',name:'정원 조명',desc:'바닥·스파이크 조명 6~8개',price:1800000},
+  {id:'water',img:'x_water',name:'자동 관수',desc:'점적 호스와 타이머',price:2500000},
+  {id:'deck',img:'x_deck',name:'데크 4평',desc:'합성목, 기초 공사 포함',price:4800000},
+  {id:'pergola',img:'x_pergola',name:'파고라',desc:'3×3m 알루미늄',price:6500000},
+  {id:'tap',img:'x_tap',name:'외부 수전',desc:'동파방지형 1곳',price:600000},
+  {id:'edge',img:'x_edge',name:'화단 경계석',desc:'20m 기준',price:1200000},
+];
+const PY=3.3058;
+const S={style:null,area:30,path:null,len:15,width:0.9,mat:null,plant:null,trees:new Set(),extras:new Set()};
+const STEPS=[
+  {key:'style',nav:'스타일',ok:()=>!!S.style},
+  {key:'area',nav:'면적',ok:()=>S.area>=5},
+  {key:'path',nav:'동선',ok:()=>!!S.path&&(S.path==='no'||S.len>0)},
+  {key:'mat',nav:'길 소재',ok:()=>!!S.mat,skip:()=>S.path==='no'},
+  {key:'plant',nav:'식재',ok:()=>!!S.plant},
+  {key:'extra',nav:'추가 시설',ok:()=>true},
+  {key:'result',nav:'견적서',ok:()=>true},
+];
+let cur=0;
+const $=id=>document.getElementById(id);
+const find=(a,id)=>a.find(x=>x.id===id);
+const won=n=>{const m=Math.round(n/10000);if(m>=10000){const e=Math.floor(m/10000),r=m%10000;return e+'억'+(r?' '+r.toLocaleString()+'만':'')+' 원'}return m.toLocaleString()+'만 원'};
+const img=k=>`img/${k}.jpg`;
+
+function calc(){
+  const L=[],st=find(STYLES,S.style);
+  if(st)L.push({img:st.img,k:st.name+' 기본 조성',d:`${S.area}평 × 평당 ${st.unit/10000}만 원`,v:st.unit*S.area});
+  if(S.path==='yes'){const m=find(MATS,S.mat),a=+(S.len*S.width).toFixed(1);if(m)L.push({img:m.img,k:'동선 · '+m.name,d:`${S.len}m × 폭 ${S.width}m = ${a}㎡`,v:Math.round(m.m2*a)})}
+  const p=find(PLANTS,S.plant);if(p)L.push({img:p.img,k:'식재 · '+p.name,d:p.py?`${S.area}평 × 평당 ${p.py/10000}만 원`:'기본 조성에 포함',v:p.py*S.area});
+  S.trees.forEach(id=>{const t=find(TREES,id);L.push({img:t.img,k:t.name+' '+t.size,d:'운반·식재·지주 포함',v:t.price})});
+  S.extras.forEach(id=>{const e=find(EXTRAS,id);L.push({img:e.img,k:e.name,d:e.desc,v:e.price})});
+  const sub=L.reduce((a,b)=>a+b.v,0);
+  if(sub>0)L.push({img:null,k:'설계 · 현장관리비',d:'공사비의 8%, 최소 50만 원',v:Math.max(500000,Math.round(sub*.08))});
+  return{L,total:L.reduce((a,b)=>a+b.v,0)};
+}
+
+function card(o){
+  return `<button type="button" class="card${o.multi?' multi':''}" data-id="${o.id}" aria-pressed="${!!o.on}">
+    <div class="ph"><img src="${img(o.img)}" alt="${o.name}" loading="lazy">${o.hot?'<span class="tag">인기</span>':''}${o.ref?`<span class="ref">${o.ref}</span>`:''}<i class="chk" aria-hidden="true"></i></div>
+    <div class="nm">${o.name}${o.en?`<small>${o.en}</small>`:''}</div>
+    ${o.desc?`<div class="ds">${o.desc}</div>`:''}
+    ${o.plants?`<div class="pl">${o.plants}</div>`:''}
+    ${o.price?`<div class="pr">${o.price}</div>`:''}</button>`;
+}
+
+function render(){
+  const step=STEPS[cur],vis=STEPS.filter(s=>!(s.skip&&s.skip())),idx=vis.indexOf(step);
+  $('bar').style.width=((idx+1)/vis.length*100)+'%';
+  $('crumbs').innerHTML=vis.map((s,i)=>{const reach=i<=idx||vis.slice(0,i).every(x=>x.ok());
+    return `<button type="button" data-k="${s.key}" class="${s===step?'on':i<idx?'done':''}" ${reach?'':'disabled'}>${s.nav}</button>`}).join('');
+  let h='';
+  if(step.key==='style')h=`<h1 class="q">어떤 정원을 원하세요?</h1><p class="qh">각 스타일을 대표하는 실제 정원 사진이에요. 가장 끌리는 걸 하나 골라 주세요. 상담하면서 섞어도 괜찮아요.</p>
+    <div class="cards" id="g">${STYLES.map(s=>card({...s,price:`평당 ${s.unit/10000}만 원~`,on:S.style===s.id})).join('')}</div>`;
+  if(step.key==='area')h=`<h1 class="q">정원 면적은 어느 정도인가요?</h1><p class="qh">건물과 주차 공간을 뺀, 실제로 꾸밀 땅의 넓이예요. 대략이어도 괜찮아요.</p>
+    <div class="panel"><div class="num"><input type="number" id="area-n" min="5" max="300" value="${S.area}" aria-label="면적(평)"><span class="u">평</span><span class="cv" id="area-m">약 ${Math.round(S.area*PY)}㎡</span></div>
+    <input type="range" id="area-r" min="5" max="200" value="${Math.min(S.area,200)}" aria-label="면적 조절">
+    <div class="scale"><span>5평</span><span>100평</span><span>200평</span></div>
+    <div class="presets">${PRESETS.map(p=>`<button type="button" class="preset" data-a="${p.a}" aria-pressed="${S.area===p.a}"><b>${p.a}평</b><span>${p.t}</span></button>`).join('')}</div>
+    <div class="tip"><span><b>감이 안 오면</b> 주차 한 칸이 약 4평(12.5㎡)이에요. 마당에 차가 몇 대 들어갈지 떠올려 보세요.</span></div></div>`;
+  if(step.key==='path'){const a=+(S.len*S.width).toFixed(1);
+    h=`<h1 class="q">정원 안에 걸어 다닐 길이 필요한가요?</h1><p class="qh">현관에서 대문까지, 데크에서 텃밭까지처럼 자주 오가는 길이에요.</p>
+    <div class="cards c2" id="g">${card({id:'yes',img:'path_yes',name:'네, 길을 만들어 주세요',desc:'길이와 폭을 정하고 소재를 골라요',on:S.path==='yes'})}${card({id:'no',img:'path_no',name:'아니요, 필요 없어요',desc:'잔디와 화단으로만 채워요',on:S.path==='no'})}</div>
+    ${S.path==='yes'?`<h2 class="sub-q">길 전체 길이</h2><p class="sub-h">여러 갈래라면 모두 더한 길이로 적어 주세요.</p>
+    <div class="panel"><div class="num"><input type="number" id="len-n" min="1" max="100" value="${S.len}" aria-label="동선 길이(m)"><span class="u">m</span><span class="cv" id="len-a">길 면적 약 ${a}㎡</span></div>
+    <input type="range" id="len-r" min="1" max="60" value="${Math.min(S.len,60)}" aria-label="길이 조절"><div class="scale"><span>1m</span><span>30m</span><span>60m</span></div></div>
+    <h2 class="sub-q">길 폭</h2><p class="sub-h">회색 칸 한 줄이 10cm예요.</p>
+    <div class="widths" id="w">${WIDTHS.map(w=>`<button type="button" class="wbtn" data-w="${w.w}" aria-pressed="${S.width===w.w}"><div class="vis"><i style="width:${w.w/1.2*100}%"></i></div><b>${w.w}m</b><span>${w.d}</span></button>`).join('')}</div>`:''}`}
+  if(step.key==='mat'){const a=+(S.len*S.width).toFixed(1);
+    h=`<h1 class="q">길은 어떤 소재로 깔까요?</h1><p class="qh">${S.len}m × 폭 ${S.width}m, 약 ${a}㎡ 기준으로 계산했어요.</p>
+    <div class="cards" id="g">${MATS.map(m=>card({...m,price:`${won(m.m2*a)} <span>· ㎡당 ${m.m2/10000}만</span>`,on:S.mat===m.id})).join('')}</div>`}
+  if(step.key==='plant')h=`<h1 class="q">식물은 얼마나 심을까요?</h1><p class="qh">많이 심을수록 처음부터 꽉 찬 느낌이 나요. 대신 비용과 관리가 늘어요.</p>
+    <div class="cards c4" id="g">${PLANTS.map(p=>card({...p,price:p.py?`+${won(p.py*S.area)} <span>· 평당 ${p.py/10000}만</span>`:'추가 비용 없음',on:S.plant===p.id})).join('')}</div>
+    <h2 class="sub-q">상징목도 넣을까요?</h2><p class="sub-h">정원의 중심이 되는 큰 나무예요. 여러 그루 골라도 돼요.</p>
+    <div class="cards c4" id="g2">${TREES.map(t=>card({...t,desc:t.size+' 기준',price:won(t.price),on:S.trees.has(t.id),multi:true})).join('')}</div>`;
+  if(step.key==='extra')h=`<h1 class="q">같이 하고 싶은 시설이 있나요?</h1><p class="qh">여러 개 골라도 되고, 없으면 그냥 넘어가세요.</p>
+    <div class="cards" id="g">${EXTRAS.map(e=>card({...e,price:won(e.price),on:S.extras.has(e.id),multi:true})).join('')}</div>`;
+  if(step.key==='result'){const{L,total}=calc();
+    h=`<h1 class="q">예상 견적이 나왔어요</h1><p class="qh">현장 상태에 따라 15% 안팎으로 달라질 수 있어요. 실측 후 확정 견적을 드려요.</p>
+    <div class="receipt">${L.map(l=>`<div class="rc-row">${l.img?`<img src="${img(l.img)}" alt="">`:'<div class="noimg">설계</div>'}<div class="k"><b>${l.k}</b><small>${l.d}</small></div><div class="v">${won(l.v)}</div></div>`).join('')}
+    <div class="rc-sum"><span>합계 · 부가세 별도</span><b>${won(total)}</b></div></div>
+    <ul class="notes"><li>기존 조경 철거, 폐기물 처리, 장비가 들어가기 어려운 현장은 따로 계산해요.</li><li>나무 가격은 계절과 수형에 따라 달라져요.</li><li>테스트용 단가라 실제 견적과 달라요.</li></ul>
+    <h2 class="sub-q">실측 상담 신청</h2><p class="sub-h">이 견적서를 가지고 현장에 방문해요.</p>
+    <form id="lead"><label for="nm">이름<input id="nm" required autocomplete="name" placeholder="홍길동"></label>
+    <label for="ph">연락처<input id="ph" required inputmode="tel" placeholder="010-0000-0000"></label>
+    <label for="ad">시공 지역<input id="ad" placeholder="예: 경기 양평군 서종면"></label>
+    <button class="btn pri" type="submit" style="display:block;width:100%">이 견적으로 상담 신청</button></form><div id="sent"></div>`}
+  $('stage').innerHTML=h; bind(step.key); updateNav(); updateSummary();
+}
+
+function bind(k){
+  const st=$('stage'),on=(sel,fn)=>st.querySelectorAll(sel).forEach(b=>b.onclick=()=>fn(b));
+  const tog=(set,id)=>set.has(id)?set.delete(id):set.add(id);
+  if(k==='style')on('#g .card',b=>{S.style=b.dataset.id;render()});
+  if(k==='mat')on('#g .card',b=>{S.mat=b.dataset.id;render()});
+  if(k==='plant'){on('#g .card',b=>{S.plant=b.dataset.id;render()});on('#g2 .card',b=>{tog(S.trees,b.dataset.id);render()})}
+  if(k==='extra')on('#g .card',b=>{tog(S.extras,b.dataset.id);render()});
+  if(k==='area'){const n=$('area-n'),r=$('area-r');
+    const set=v=>{S.area=Math.max(0,Math.round(+v||0));n.value=S.area;r.value=Math.min(S.area,200);$('area-m').textContent=`약 ${Math.round(S.area*PY)}㎡`;
+      st.querySelectorAll('.preset').forEach(c=>c.setAttribute('aria-pressed',+c.dataset.a===S.area));updateNav();updateSummary()};
+    n.oninput=()=>set(n.value);r.oninput=()=>set(r.value);on('.preset',c=>set(c.dataset.a))}
+  if(k==='path'){on('#g .card',b=>{S.path=b.dataset.id;render()});on('.wbtn',b=>{S.width=+b.dataset.w;render()});
+    const n=$('len-n'),r=$('len-r');if(n){const set=v=>{S.len=Math.max(0,Math.round(+v||0));n.value=S.len;r.value=Math.min(S.len,60);$('len-a').textContent=`길 면적 약 ${+(S.len*S.width).toFixed(1)}㎡`;updateNav();updateSummary()};
+      n.oninput=()=>set(n.value);r.oninput=()=>set(r.value)}}
+  if(k==='result')$('lead').onsubmit=e=>{e.preventDefault();$('sent').innerHTML=`<p class="done-msg">${$('nm').value}님, 신청 내용을 받았어요. 테스트 페이지라 실제로 전송되지는 않아요.</p>`};
+}
+
+function go(i){cur=i;render();window.scrollTo({top:0})}
+function move(d){let i=cur+d;while(STEPS[i]&&STEPS[i].skip&&STEPS[i].skip())i+=d;if(STEPS[i])go(i)}
+function updateNav(){const s=STEPS[cur],last=s.key==='result',lbl=s.key==='extra'?'견적서 보기':'다음';
+  ['next','mnext'].forEach(id=>{const b=$(id);b.disabled=!s.ok();b.textContent=lbl;b.hidden=last});
+  $('prev').hidden=cur===0}
+function updateSummary(){const{L,total}=calc();
+  $('sm-count').textContent=L.length?`${L.length}개 항목`:'';
+  $('sm-list').innerHTML=L.length?L.map(l=>`<div class="sm-row">${l.img?`<img src="${img(l.img)}" alt="">`:'<img alt="" style="visibility:hidden">'}<div class="k">${l.k}<small>${l.d}</small></div><div class="v">${won(l.v)}</div></div>`).join(''):'<div class="sm-empty">사진을 고르면 여기에 금액이 쌓여요</div>';
+  $('total').textContent=won(total);$('mtotal').textContent=won(total);
+  $('range').textContent=total?`${won(total*.85)} ~ ${won(total*1.15)}`:''}
+
+$('start').onclick=()=>{$('intro').hidden=true;$('app').hidden=false;$('mbar').classList.add('show');go(0)};
+$('next').onclick=$('mnext').onclick=()=>move(1);
+$('prev').onclick=()=>move(-1);
+$('crumbs').onclick=e=>{const b=e.target.closest('button[data-k]');if(b&&!b.disabled)go(STEPS.findIndex(s=>s.key===b.dataset.k))};
+$('credits').innerHTML=Object.entries(CREDITS).map(([k,v])=>`<li>${v}</li>`).join('');
+</script>
+
+</body>
+</html>
